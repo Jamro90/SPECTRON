@@ -1,5 +1,5 @@
-#include "ray_maker.h"
-
+#include "calc.h"
+#include "gui_widgets.h"
 
 // SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics
 int main(int argc, char **argv)
@@ -137,7 +137,7 @@ int main(int argc, char **argv)
 						
 					break;
 				case 4:
-					//if(HelpButton) toggle(&message_status);
+					if(HelpButton) toggle(&message_status);
 					break;
 	
 			}
@@ -153,7 +153,6 @@ int main(int argc, char **argv)
 		if(save) saveWindow(&save, data_file);
 
 		EndDrawing();
-		getch();
 	}
 	
 	// program cleaning
