@@ -1,6 +1,16 @@
 #include "calc.h"
 #include "gui_widgets.h"
 
+#define _CRT_SECURE_NO_WARNINGS_
+
+#ifdef _WIN32
+	#define PLATFORM "win32"
+#elif _WIN64
+	#define PLATFORM "win64"
+#elif __linux__
+	#define PLATFORM "linux"
+#endif
+
 // SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics
 int main(int argc, char **argv)
 {
@@ -9,17 +19,10 @@ int main(int argc, char **argv)
 	int SCREEN_HEIGHT = GetScreenHeight();
 
 	InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "SPECTRON");
-
-	// Camera 3D PreSetting
-	int cam_mode = 0;
-
-	Camera3D camera = {0};
-	Camera_PreSet(&camera);
-	UpdateCamera(&camera, CAMERA_ORBITAL);
-
 	// program set
 		// status for windows & objects
 	int message_status = 0;
+	bool error = false;
 	int save = 0;
 	bool grid = true;
 	int panel_state = 0;
@@ -50,18 +53,28 @@ int main(int argc, char **argv)
 	float freq = 1.0f;
 	float lambda = 1.0f;
 		// camera
-	float x_camera = 100;
-	float y_camera = 100;
-	float z_camera = 100;
+	float x_camera = 0;
+	float y_camera = 5;
+	float z_camera = 5;
 	float distance_camera = 100;
 	float azymuth_camera = 100;
 	float elevation_camera = 100;
+
+	// Camera 3D PreSetting
+	int cam_mode = CAMERA_ORBITAL;
+	Camera3D camera = {0};
+	camera.position = (Vector3){x_camera, y_camera, z_camera};
+	camera.target = (Vector3){0.0f, 0.0f, 0.0f};	
+	camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };
+	camera.fovy = 90.0f;
+	camera.projection = CAMERA_PERSPECTIVE;
 
 		// object
 	GuiFileDialogState import_state = InitGuiFileDialog(GetWorkingDirectory());	
 	bool import_btn = false;
 	Model model = {0};
 	char model_name[512];
+	char name[512];
 
 		// config
 	int grid_count = 100;
@@ -77,12 +90,12 @@ int main(int argc, char **argv)
 	{	
 		// key shot cuts check
 			// Camera Mode Change <SPACE>
-		(IsKeyDown(KEY_SPACE)) ? UpdateCamera(&camera, CAMERA_FREE) : UpdateCamera(&camera, CAMERA_ORBITAL);
-			// grid enable/disable  <G>
+		//(IsKeyDown(KEY_SPACE)) ? UpdateCamera(&camera, CAMERA_ORBITAL) : UpdateCamera(&camera, 0);
+			// grid enable/disable  <Ctrl + G>
 		((IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_G))) ? toggle(&grid) : NULL;
 			// save data <Ctrl + S>
 		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) save = !save;
-
+			// help <Ctrl + H>
 		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_H)) message_status = !message_status;				
 		// camera position/mode update
 		UpdateCamera(&camera, cam_mode);
@@ -90,19 +103,18 @@ int main(int argc, char **argv)
 		BeginDrawing();
 
 			ClearBackground(RAYWHITE);
-		// 3D Mode	
+        			// 3D Mode	
 		BeginMode3D(camera);
-		DrawModel(model, cubePosition, 1.0f, BLUE);
-		//DrawCube(cubePosition, 2.0f, 2.0f, 2.0f, RED);
+		if(IsModelReady(model))	DrawModel(model, cubePosition, 1.0f, GRAY);
                 	DrawCubeWires(cubePosition, 2.0f, 2.0f, 2.0f, MAROON);
 			DrawSphere((Vector3) {x_radar, y_radar, z_radar}, 1.0, BLUE);		
 			// grid draw
 			if(grid) DrawGrid(grid_count, grid_res);
 		EndMode3D();
-               	
+       	
 			// Title Text
 			DrawText("SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics", 10.0f, 10.0f, 10, BLACK);
-
+			DrawFPS(SCREEN_WIDTH * .9, 10);
 			int FileButton = GuiButton(FileBox, "File");
 			int ViewButton = GuiButton(ViewBox, "View");
 			int ToolsButton = GuiButton(ToolsBox, "Tools");
@@ -113,7 +125,7 @@ int main(int argc, char **argv)
 			{
 				case 1:
 					GuiWindowBox(PanelBox, "FILE");
-					File(&panel_width, &btn_width, &btn_height, &pad_y);
+					File(&panel_width, &btn_width, &btn_height, &pad_y, &model);
 					break;
 				case 2:
 					GuiPanel(PanelBox, "View");
@@ -122,26 +134,30 @@ int main(int argc, char **argv)
 					GuiPanel(PanelBox, "Tools");
 					Radar_Group(&x_radar, &y_radar, &z_radar, &distance_radar, &azymuth_radar, &elevation_radar, &radar_combo, &lambda, &freq, &group_width, &panel_width, &slider_width);
 					Camera_Group(&x_camera, &y_camera, &z_camera, &distance_camera, &azymuth_camera, &elevation_camera, &camera_combo, &group_width, &panel_width, &slider_width);
-					Object_Group(&import_btn, &material_combo, &group_width, &panel_width);
+					
+					strcmp(name, "") ? "File name" : name;
+					Object_Group(&import_btn, &material_combo, &group_width, &panel_width, name);
 
 					if(import_btn)
 					{
+						//UnloadModel(model);
 						toggle(&import_state.windowActive);
 					}
 						if(import_state.windowActive)
 						{
 							DrawRectangle(0.0f, 0.0f, (float) GetScreenWidth(), (float) GetScreenHeight(), Fade(GRAY, 0.8f));
-							importWindow(&import_state, &model, model_name);
-							GuiFileDialog(&import_state);
 						}
-						
+					importWindow(&import_state, &model, model_name, name);
+					GuiFileDialog(&import_state);
+
+					
 					break;
 				case 4:
-					if(HelpButton) toggle(&message_status);
+					if(HelpButton) message_status = !message_status;
 					break;
 	
 			}
-			// Front Buttons
+		// Front Buttons
 		if(FileButton) panel_state = 1;
 		if(ViewButton) panel_state = 2;
 		if(ToolsButton) panel_state = 3;
@@ -156,6 +172,7 @@ int main(int argc, char **argv)
 	}
 	
 	// program cleaning
+	UnloadModel(model);
 	CloseWindow();
 
 	return 0;

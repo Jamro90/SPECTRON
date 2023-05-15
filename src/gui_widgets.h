@@ -4,13 +4,14 @@
 #define GUI_FILE_DIALOG_IMPLEMENTATION
 #include "raygui/gui_file_dialog.h"
 
-void importWindow(GuiFileDialogState *import_state, Model *model, char *model_name)
+void importWindow(GuiFileDialogState *import_state, Model *model, char *model_name, char *name)
 {
 	if(import_state->SelectFilePressed)
 	{
-		if(IsFileExtension(import_state->fileNameText, ".obj"))
+		if(  (IsFileExtension(import_state->fileNameText, ".obj")) )
 		{
 			strcpy(model_name, TextFormat("%s/%s", import_state->dirPathText, import_state->fileNameText));
+			strcpy(name, TextFormat("%s", import_state->fileNameText));
 			UnloadModel(*model);
 			*model = LoadModel(model_name);
 		}
@@ -81,7 +82,7 @@ int saveWindow(int *state, char *INPUT)
 }
 
 // File panel
-void File(float *panel_width, float *btn_width, float *btn_height, int *pad_y)
+void File(float *panel_width, float *btn_width, float *btn_height, int *pad_y, Model *model)
 {
 	int NewButon = GuiButton((Rectangle) {(float) GetScreenWidth() - (*panel_width + *btn_width)/2, *pad_y, *btn_width, *btn_height}, GuiIconText(ICON_FILE_NEW, "[N]ew Project"));
 	
@@ -93,6 +94,7 @@ void File(float *panel_width, float *btn_width, float *btn_height, int *pad_y)
 	
 	if(ExitButton)
 	{
+		UnloadModel(*model);
 		CloseWindow();
 	}
 
@@ -167,12 +169,12 @@ void Camera_Group(float *x_camera, float *y_camera, float *z_camera, float *dist
 	}
 }
 
-void Object_Group(bool *import_btn, int *material_combo, float *group_width, float *panel_width)
+void Object_Group(bool *import_btn, int *material_combo, float *group_width, float *panel_width, char *name)
 {
 			// Object Group
 	GuiGroupBox((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2, 540.0, *group_width, 100.0}, "Object Settings");
 		
-	GuiLabel((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.5, 560.0, *group_width/2, 20.0}, "File Name");
+	GuiLabel((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.2, 560.0, *group_width/2, 20.0}, name);
 
 	*import_btn = GuiButton((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/3.5, 560.0, *group_width/2, 20.0}, "Import");
 	
