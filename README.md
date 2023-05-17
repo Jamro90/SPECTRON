@@ -26,12 +26,14 @@ make
 building for Windows 64-bit architecture
 
 ```bash
+cd SPECTRON\src
 make win64
 ```
 
 and Windows 32-bit
 
 ```bash
+cd SPECTRON\src
 make win32
 ```
 
