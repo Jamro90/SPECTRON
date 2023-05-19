@@ -165,7 +165,7 @@ void Camera_Group(float *x_camera, float *y_camera, float *z_camera, float *dist
 		
 		*azymuth_camera = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 440.0, *slider_width, 20.0}, "Azymuth", TextFormat("%.2f", *azymuth_camera), *azymuth_camera, 0, 360);
 			
-		*elevation_camera = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 480.0, *slider_width, 20.0}, "Elevation", TextFormat("%.2f", *elevation_camera), *elevation_camera, -180, 180);
+		*elevation_camera = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 480.0, *slider_width, 20.0}, "Elevation", TextFormat("%.2f", *elevation_camera), *elevation_camera, -90, 90);
 	}
 }
 

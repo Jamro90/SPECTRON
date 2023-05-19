@@ -54,19 +54,19 @@ int main(int argc, char **argv)
 	float lambda = 1.0f;
 		// camera
 	float x_camera = 0;
-	float y_camera = 5;
+	float y_camera = -5;
 	float z_camera = 5;
 	float distance_camera = 100;
 	float azymuth_camera = 100;
 	float elevation_camera = 100;
 
 	// Camera 3D PreSetting
-	int cam_mode = CAMERA_ORBITAL;
+	int cam_mode = CAMERA_THIRD_PERSON;
 	Camera3D camera = {0};
 	camera.position = (Vector3){x_camera, y_camera, z_camera};
 	camera.target = (Vector3){0.0f, 0.0f, 0.0f};	
-	camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };
-	camera.fovy = 90.0f;
+	camera.up = (Vector3){ 0.0f, 0.0f, 1.0f };
+	camera.fovy = 45.0f;
 	camera.projection = CAMERA_PERSPECTIVE;
 
 		// object
@@ -89,8 +89,6 @@ int main(int argc, char **argv)
 	while(!WindowShouldClose())
 	{	
 		// key shot cuts check
-			// Camera Mode Change <SPACE>
-		//(IsKeyDown(KEY_SPACE)) ? UpdateCamera(&camera, CAMERA_ORBITAL) : UpdateCamera(&camera, 0);
 			// grid enable/disable  <Ctrl + G>
 		((IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_G))) ? toggle(&grid) : NULL;
 			// save data <Ctrl + S>
@@ -98,8 +96,26 @@ int main(int argc, char **argv)
 			// help <Ctrl + H>
 		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_H)) message_status = !message_status;				
 		// camera position/mode update
-		UpdateCamera(&camera, cam_mode);
+		if((IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) || (GetMouseWheelMove() != 0)) 
+		{
+			UpdateCamera(&camera, cam_mode);
+			x_camera = camera.position.x;
+			y_camera = camera.position.y;
+			z_camera = camera.position.z;
 
+			Cartesian2Polar(&x_camera, &y_camera, &z_camera, &distance_camera, &azymuth_camera, &elevation_camera);
+			Polar2Cartesian(&x_camera, &y_camera, &z_camera, &distance_camera, &azymuth_camera, &elevation_camera);
+		}
+		else
+		{
+			x_camera = camera.position.x;
+			y_camera = camera.position.y;
+			z_camera = camera.position.z;
+			Polar2Cartesian(&x_camera, &y_camera, &z_camera, &distance_camera, &azymuth_camera, &elevation_camera);
+			Cartesian2Polar(&x_camera, &y_camera, &z_camera, &distance_camera, &azymuth_camera, &elevation_camera);
+		}
+
+		// drawing objects
 		BeginDrawing();
 
 			ClearBackground(RAYWHITE);
@@ -133,7 +149,7 @@ int main(int argc, char **argv)
 				case 3:
 					GuiPanel(PanelBox, "Tools");
 					Radar_Group(&x_radar, &y_radar, &z_radar, &distance_radar, &azymuth_radar, &elevation_radar, &radar_combo, &lambda, &freq, &group_width, &panel_width, &slider_width);
-					Camera_Group(&x_camera, &y_camera, &z_camera, &distance_camera, &azymuth_camera, &elevation_camera, &camera_combo, &group_width, &panel_width, &slider_width);
+					Camera_Group(&camera.position.x, &camera.position.y, &camera.position.z, &distance_camera, &azymuth_camera, &elevation_camera, &camera_combo, &group_width, &panel_width, &slider_width);
 					
 					strcmp(name, "") ? "File name" : name;
 					Object_Group(&import_btn, &material_combo, &group_width, &panel_width, name);
