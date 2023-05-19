@@ -113,22 +113,22 @@ void Radar_Group(float *x_radar, float *y_radar, float *z_radar, float *distance
 	{
 		Cartesian2Polar(x_radar, y_radar, z_radar, distance_radar, azymuth_radar, elevation_radar);
 		
-		*x_radar = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 95.0, *slider_width, 20.0}, "X: ", TextFormat("%.2f", *x_radar), *x_radar, -100, 100);
+		*x_radar = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 95.0, *slider_width, 20.0}, "X: ", TextFormat("%.2f m", *x_radar), *x_radar, -100, 100);
 		
-		*y_radar = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 135.0, *slider_width, 20.0}, "Y: ", TextFormat("%.2f", *y_radar), *y_radar, -100, 100);
+		*y_radar = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 135.0, *slider_width, 20.0}, "Y: ", TextFormat("%.2f m", *y_radar), *y_radar, -100, 100);
 			
-		*z_radar = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 175.0, *slider_width, 20.0}, "Z: ", TextFormat("%.2f", *z_radar), *z_radar, -100, 100);
+		*z_radar = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 175.0, *slider_width, 20.0}, "Z: ", TextFormat("%.2f m", *z_radar), *z_radar, -100, 100);
 	
 	}
 	else if (*radar_combo == 1)
 	{
 		Polar2Cartesian(x_radar, y_radar, z_radar, distance_radar, azymuth_radar, elevation_radar);
 		
-		*distance_radar = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 95.0, *slider_width, 20.0}, "Distance", TextFormat("%.2f", *distance_radar), *distance_radar, 0, 100);
+		*distance_radar = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 95.0, *slider_width, 20.0}, "Distance", TextFormat("%.2f m", *distance_radar), *distance_radar, 0, 100);
 		
-		*azymuth_radar = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 135.0, *slider_width, 20.0}, "Azymuth", TextFormat("%.2f", *azymuth_radar), *azymuth_radar, 0, 360);
+		*azymuth_radar = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 135.0, *slider_width, 20.0}, "Azymuth", TextFormat("%.2f °", *azymuth_radar), *azymuth_radar, 0, 360);
 			
-		*elevation_radar = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 175.0, *slider_width, 20.0}, "Elevation", TextFormat("%.2f", *elevation_radar), *elevation_radar, -90, 90);
+		*elevation_radar = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 175.0, *slider_width, 20.0}, "Elevation", TextFormat("%.2f °", *elevation_radar), *elevation_radar, -90, 90);
 	}
 
 	GuiLabel((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.5, 215.0, *group_width, 20.0}, "Radar Params");
@@ -151,21 +151,21 @@ void Camera_Group(float *x_camera, float *y_camera, float *z_camera, float *dist
 	{
 		Cartesian2Polar(x_camera, y_camera, z_camera, distance_camera, azymuth_camera, elevation_camera);
 
-		*x_camera = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 400.0, *slider_width, 20.0}, "X: ", TextFormat("%.2f", *x_camera), *x_camera, -100, 100);
+		*x_camera = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 400.0, *slider_width, 20.0}, "X: ", TextFormat("%.2f m", *x_camera), *x_camera, -100, 100);
 		
-		*y_camera = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 440.0, *slider_width, 20.0}, "Y: ", TextFormat("%.2f", *y_camera), *y_camera, -100, 100);
+		*y_camera = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 440.0, *slider_width, 20.0}, "Y: ", TextFormat("%.2f m", *y_camera), *y_camera, -100, 100);
 			
-		*z_camera = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 480.0, *slider_width, 20.0}, "Z: ", TextFormat("%.2f", *z_camera), *z_camera, -100, 100);
+		*z_camera = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 480.0, *slider_width, 20.0}, "Z: ", TextFormat("%.2f m", *z_camera), *z_camera, -100, 100);
 	}
 	else if(*camera_combo == 1)
 	{
 		Polar2Cartesian(x_camera, y_camera, z_camera, distance_camera, azymuth_camera, elevation_camera);
 
-		*distance_camera = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 400.0, *slider_width, 20.0}, "Distance", TextFormat("%.2f", *distance_camera), *distance_camera, -100, 100);
+		*distance_camera = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 400.0, *slider_width, 20.0}, "Distance", TextFormat("%.2f m", *distance_camera), *distance_camera, -100, 100);
 		
-		*azymuth_camera = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 440.0, *slider_width, 20.0}, "Azymuth", TextFormat("%.2f", *azymuth_camera), *azymuth_camera, 0, 360);
+		*azymuth_camera = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 440.0, *slider_width, 20.0}, "Azymuth", TextFormat("%.2f °", *azymuth_camera), *azymuth_camera, 0, 360);
 			
-		*elevation_camera = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 480.0, *slider_width, 20.0}, "Elevation", TextFormat("%.2f", *elevation_camera), *elevation_camera, -90, 90);
+		*elevation_camera = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 480.0, *slider_width, 20.0}, "Elevation", TextFormat("%.2f °", *elevation_camera), *elevation_camera, -90, 90);
 	}
 }
 

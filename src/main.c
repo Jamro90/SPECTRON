@@ -74,15 +74,24 @@ int main(int argc, char **argv)
 	bool import_btn = false;
 	Model model = {0};
 	char model_name[512];
-	char name[512];
+	char name[512] = "File name";
+
+		//gizmo settings
+	float gizmo_x = 0;
+	float gizmo_y = 0;
+	float gizmo_z = 0;
+	int segments = 16;
+	float cylinder_d = 0.3;
+	float cylinder_h = 4;
+	float cone_d = 0.6;
+	float cone_h = 2 + cylinder_h;
 
 		// config
 	int grid_count = 100;
 	float grid_res = 0.1;
 	char data_file[256] = {0};
-
 	
-	Vector3 cubePosition = { 0.0f, 0.0f, 0.0f };
+	Vector3 zero_position = { 0.0f, 0.0f, 0.0f };
 	SetTargetFPS(60);
 
 	// main loop
@@ -99,6 +108,7 @@ int main(int argc, char **argv)
 		if((IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) || (GetMouseWheelMove() != 0)) 
 		{
 			UpdateCamera(&camera, cam_mode);
+			camera.target = (Vector3){0.0f, 0.0f, 0.0f};	
 			x_camera = camera.position.x;
 			y_camera = camera.position.y;
 			z_camera = camera.position.z;
@@ -108,6 +118,7 @@ int main(int argc, char **argv)
 		}
 		else
 		{
+			camera.target = (Vector3){0.0f, 0.0f, 0.0f};	
 			x_camera = camera.position.x;
 			y_camera = camera.position.y;
 			z_camera = camera.position.z;
@@ -121,16 +132,43 @@ int main(int argc, char **argv)
 			ClearBackground(RAYWHITE);
         			// 3D Mode	
 		BeginMode3D(camera);
-		if(IsModelReady(model))	DrawModel(model, cubePosition, 1.0f, GRAY);
-                	DrawCubeWires(cubePosition, 2.0f, 2.0f, 2.0f, MAROON);
+		if(IsModelReady(model))	
+		{
+			DrawModel(model, zero_position, 1.0f, GRAY);
+			DrawModelWires(model, zero_position, 1.0f, BLACK);
+			BoundingBox boundingBox = GetModelBoundingBox(model);
+			DrawBoundingBox(boundingBox, DARKBROWN);
+			gizmo_x = boundingBox.min.x;
+			gizmo_y = boundingBox.min.y;
+			gizmo_z = boundingBox.min.z;
+		}
 			DrawSphere((Vector3) {x_radar, y_radar, z_radar}, 1.0, BLUE);		
+
 			// grid draw
 			if(grid) DrawGrid(grid_count, grid_res);
+
+			// draw gizmo
+				// X axis
+			
+			DrawCylinderEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {cylinder_h + gizmo_x, gizmo_y, gizmo_z}, cylinder_d, cylinder_d, segments, RED);
+			DrawCylinderWiresEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {cylinder_h + gizmo_x, gizmo_y, gizmo_z}, cylinder_d, cylinder_d, 0, BLACK);
+			DrawCylinderEx( (Vector3) {cylinder_h + gizmo_x, gizmo_y, gizmo_z}, (Vector3) {cone_h + gizmo_x, gizmo_y, gizmo_z}, cone_d, 0.0f, segments, RED);
+			DrawCylinderWiresEx( (Vector3) {cylinder_h + gizmo_x, gizmo_y, gizmo_z}, (Vector3) {cone_h + gizmo_x, gizmo_y, gizmo_z}, cone_d, 0.0f, 0, BLACK);
+				// Y axis
+			DrawCylinderEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {gizmo_x, cylinder_h + gizmo_y, gizmo_z}, cylinder_d, cylinder_d, 0, GREEN);
+			DrawCylinderWiresEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {gizmo_x, cylinder_h + gizmo_y, gizmo_z}, cylinder_d, cylinder_d, 0, BLACK);
+			DrawCylinderEx( (Vector3) {gizmo_x, cylinder_h + gizmo_y, gizmo_z}, (Vector3) {gizmo_x, cone_h + gizmo_y, gizmo_z}, cone_d, 0.0f, segments, GREEN);
+			DrawCylinderWiresEx( (Vector3) {gizmo_x, cylinder_h + gizmo_y, gizmo_z}, (Vector3) {gizmo_x, cone_h + gizmo_y, gizmo_z}, cone_d, 0.0f, 0, BLACK);
+				// Z axis
+			DrawCylinderEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {gizmo_x, gizmo_y, cylinder_h + gizmo_z}, cylinder_d, cylinder_d, segments, BLUE);
+			DrawCylinderWiresEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {gizmo_x, gizmo_y, cylinder_h + gizmo_z}, cylinder_d, cylinder_d, 0, BLACK);
+			DrawCylinderEx( (Vector3) {gizmo_x, gizmo_y, cylinder_h + gizmo_z}, (Vector3) {gizmo_x, gizmo_y, cone_h + gizmo_z}, cone_d, 0.0f, segments, BLUE);
+			DrawCylinderWiresEx( (Vector3) {gizmo_x, gizmo_y, cylinder_h + gizmo_z}, (Vector3) {gizmo_x, gizmo_y, cone_h + gizmo_z}, cone_d, 0.0f, 0, BLACK);
+
 		EndMode3D();
-       	
+
 			// Title Text
-			DrawText("SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics", 10.0f, 10.0f, 10, BLACK);
-			DrawFPS(SCREEN_WIDTH * .9, 10);
+			DrawText("SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics", 10.0f, 10.0f, 10, BLACK); 
 			int FileButton = GuiButton(FileBox, "File");
 			int ViewButton = GuiButton(ViewBox, "View");
 			int ToolsButton = GuiButton(ToolsBox, "Tools");
@@ -151,7 +189,6 @@ int main(int argc, char **argv)
 					Radar_Group(&x_radar, &y_radar, &z_radar, &distance_radar, &azymuth_radar, &elevation_radar, &radar_combo, &lambda, &freq, &group_width, &panel_width, &slider_width);
 					Camera_Group(&camera.position.x, &camera.position.y, &camera.position.z, &distance_camera, &azymuth_camera, &elevation_camera, &camera_combo, &group_width, &panel_width, &slider_width);
 					
-					strcmp(name, "") ? "File name" : name;
 					Object_Group(&import_btn, &material_combo, &group_width, &panel_width, name);
 
 					if(import_btn)
