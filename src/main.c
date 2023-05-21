@@ -14,22 +14,30 @@
 // SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics
 int main(int argc, char **argv)
 {
-	// main variables 
-	int SCREEN_WIDTH = GetScreenWidth();
-	int SCREEN_HEIGHT = GetScreenHeight();
+	InitWindow(GetScreenWidth(), GetScreenHeight(), "SPECTRON");
 
-	InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "SPECTRON");
 	// program set
 		// status for windows & objects
 	int message_status = 0;
-	bool error = false;
+	int import_message = 0;
+	
+		// object visibility
+	float check_width = 20.0;
+	bool gizmo_visibility = false;
+	bool box_visibility = false;
+	bool model_visibility = true;
+	bool radar_visibility = false;
+	bool grid_visibility = false;
+	
 	int save = 0;
-	bool grid = true;
 	int panel_state = 0;
 	int radar_combo = 0;
 	int camera_combo = 0;
 	int material_combo = 0;
+	int CamSet = 0;
+	int RadarSet = 0;
 
+	// widgets parameters
 	float btn_width = 170.0f;
 	float btn_height = 50.0f;
 	float panel_width = GetScreenWidth() * 0.2;
@@ -37,11 +45,12 @@ int main(int argc, char **argv)
 	float slider_width = GetScreenWidth() * 0.1;
 	int pad_y = btn_height + 10;
 
+	// widgets preprogram
 	Rectangle PanelBox = {(float) GetScreenWidth() - panel_width, 0.0f, (float) GetScreenWidth() - 10, (float) GetScreenHeight()};
 	Rectangle FileBox = {20.0f, 20.0f, btn_width, btn_height};
-	Rectangle ViewBox = {20.0f, 80.0f, btn_width, btn_height};
-	Rectangle ToolsBox = {20.0f, 140.0f, btn_width, btn_height};
-	Rectangle HelpBox = {20.0f, 200.0f, btn_width, btn_height};
+	Rectangle ViewBox = {200.0f, 20.0f, btn_width, btn_height};
+	Rectangle ToolsBox = {380.0f, 20.0f, btn_width, btn_height};
+	Rectangle HelpBox = {560.0f, 20.0f, btn_width, btn_height};
 		// variables for computing cordinates
 		// radar
 	float x_radar = 1.0;
@@ -75,6 +84,7 @@ int main(int argc, char **argv)
 	Model model = {0};
 	char model_name[512];
 	char name[512] = "File name";
+	float model_scale = 1.0f;
 
 		//gizmo settings
 	float gizmo_x = 0;
@@ -91,7 +101,10 @@ int main(int argc, char **argv)
 	float grid_res = 0.1;
 	char data_file[256] = {0};
 	
+		// Vectors & Positions
 	Vector3 zero_position = { 0.0f, 0.0f, 0.0f };
+
+	// FPS set
 	SetTargetFPS(60);
 
 	// main loop
@@ -99,7 +112,7 @@ int main(int argc, char **argv)
 	{	
 		// key shot cuts check
 			// grid enable/disable  <Ctrl + G>
-		((IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_G))) ? toggle(&grid) : NULL;
+		((IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_G))) ? toggle(&grid_visibility) : NULL;
 			// save data <Ctrl + S>
 		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) save = !save;
 			// help <Ctrl + H>
@@ -134,36 +147,47 @@ int main(int argc, char **argv)
 		BeginMode3D(camera);
 		if(IsModelReady(model))	
 		{
-			DrawModel(model, zero_position, 1.0f, GRAY);
-			DrawModelWires(model, zero_position, 1.0f, BLACK);
 			BoundingBox boundingBox = GetModelBoundingBox(model);
-			DrawBoundingBox(boundingBox, DARKBROWN);
+			if(model_visibility)
+			{
+				DrawModel(model, zero_position, model_scale, GRAY);
+				DrawModelWires(model, zero_position, model_scale, BLACK);
+			}
+
+			if(box_visibility)
+			{
+				DrawBoundingBox(boundingBox, DARKBROWN);
+			}
+
+			// gizmo lock in corrner of model
 			gizmo_x = boundingBox.min.x;
 			gizmo_y = boundingBox.min.y;
 			gizmo_z = boundingBox.min.z;
 		}
-			DrawSphere((Vector3) {x_radar, y_radar, z_radar}, 1.0, BLUE);		
+			if(radar_visibility) DrawSphere((Vector3) {x_radar, y_radar, z_radar}, 1.0, BLUE);		
 
 			// grid draw
-			if(grid) DrawGrid(grid_count, grid_res);
+			if(grid_visibility) DrawGrid(grid_count, grid_res);
 
 			// draw gizmo
-				// X axis
-			
-			DrawCylinderEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {cylinder_h + gizmo_x, gizmo_y, gizmo_z}, cylinder_d, cylinder_d, segments, RED);
-			DrawCylinderWiresEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {cylinder_h + gizmo_x, gizmo_y, gizmo_z}, cylinder_d, cylinder_d, 0, BLACK);
-			DrawCylinderEx( (Vector3) {cylinder_h + gizmo_x, gizmo_y, gizmo_z}, (Vector3) {cone_h + gizmo_x, gizmo_y, gizmo_z}, cone_d, 0.0f, segments, RED);
-			DrawCylinderWiresEx( (Vector3) {cylinder_h + gizmo_x, gizmo_y, gizmo_z}, (Vector3) {cone_h + gizmo_x, gizmo_y, gizmo_z}, cone_d, 0.0f, 0, BLACK);
-				// Y axis
-			DrawCylinderEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {gizmo_x, cylinder_h + gizmo_y, gizmo_z}, cylinder_d, cylinder_d, 0, GREEN);
-			DrawCylinderWiresEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {gizmo_x, cylinder_h + gizmo_y, gizmo_z}, cylinder_d, cylinder_d, 0, BLACK);
-			DrawCylinderEx( (Vector3) {gizmo_x, cylinder_h + gizmo_y, gizmo_z}, (Vector3) {gizmo_x, cone_h + gizmo_y, gizmo_z}, cone_d, 0.0f, segments, GREEN);
-			DrawCylinderWiresEx( (Vector3) {gizmo_x, cylinder_h + gizmo_y, gizmo_z}, (Vector3) {gizmo_x, cone_h + gizmo_y, gizmo_z}, cone_d, 0.0f, 0, BLACK);
-				// Z axis
-			DrawCylinderEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {gizmo_x, gizmo_y, cylinder_h + gizmo_z}, cylinder_d, cylinder_d, segments, BLUE);
-			DrawCylinderWiresEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {gizmo_x, gizmo_y, cylinder_h + gizmo_z}, cylinder_d, cylinder_d, 0, BLACK);
-			DrawCylinderEx( (Vector3) {gizmo_x, gizmo_y, cylinder_h + gizmo_z}, (Vector3) {gizmo_x, gizmo_y, cone_h + gizmo_z}, cone_d, 0.0f, segments, BLUE);
-			DrawCylinderWiresEx( (Vector3) {gizmo_x, gizmo_y, cylinder_h + gizmo_z}, (Vector3) {gizmo_x, gizmo_y, cone_h + gizmo_z}, cone_d, 0.0f, 0, BLACK);
+			if(gizmo_visibility)
+			{
+				// X axis RED
+				DrawCylinderEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {cylinder_h + gizmo_x, gizmo_y, gizmo_z}, cylinder_d, cylinder_d, segments, RED);
+				DrawCylinderWiresEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {cylinder_h + gizmo_x, gizmo_y, gizmo_z}, cylinder_d, cylinder_d, 0, BLACK);
+				DrawCylinderEx( (Vector3) {cylinder_h + gizmo_x, gizmo_y, gizmo_z}, (Vector3) {cone_h + gizmo_x, gizmo_y, gizmo_z}, cone_d, 0.0f, segments, RED);
+				DrawCylinderWiresEx( (Vector3) {cylinder_h + gizmo_x, gizmo_y, gizmo_z}, (Vector3) {cone_h + gizmo_x, gizmo_y, gizmo_z}, cone_d, 0.0f, 0, BLACK);
+				// Y axis GREEN
+				DrawCylinderEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {gizmo_x, cylinder_h + gizmo_y, gizmo_z}, cylinder_d, cylinder_d, 0, GREEN);
+				DrawCylinderWiresEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {gizmo_x, cylinder_h + gizmo_y, gizmo_z}, cylinder_d, cylinder_d, 0, BLACK);
+				DrawCylinderEx( (Vector3) {gizmo_x, cylinder_h + gizmo_y, gizmo_z}, (Vector3) {gizmo_x, cone_h + gizmo_y, gizmo_z}, cone_d, 0.0f, segments, GREEN);
+				DrawCylinderWiresEx( (Vector3) {gizmo_x, cylinder_h + gizmo_y, gizmo_z}, (Vector3) {gizmo_x, cone_h + gizmo_y, gizmo_z}, cone_d, 0.0f, 0, BLACK);
+				// Z axis BLUE
+				DrawCylinderEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {gizmo_x, gizmo_y, cylinder_h + gizmo_z}, cylinder_d, cylinder_d, segments, BLUE);
+				DrawCylinderWiresEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {gizmo_x, gizmo_y, cylinder_h + gizmo_z}, cylinder_d, cylinder_d, 0, BLACK);
+				DrawCylinderEx( (Vector3) {gizmo_x, gizmo_y, cylinder_h + gizmo_z}, (Vector3) {gizmo_x, gizmo_y, cone_h + gizmo_z}, cone_d, 0.0f, segments, BLUE);
+				DrawCylinderWiresEx( (Vector3) {gizmo_x, gizmo_y, cylinder_h + gizmo_z}, (Vector3) {gizmo_x, gizmo_y, cone_h + gizmo_z}, cone_d, 0.0f, 0, BLACK);
+			}
 
 		EndMode3D();
 
@@ -183,27 +207,35 @@ int main(int argc, char **argv)
 					break;
 				case 2:
 					GuiPanel(PanelBox, "View");
+					GuiGroupBox((Rectangle) {(float) GetScreenWidth() - (group_width + panel_width)/2, 50.0, group_width, 60.0}, "Object visibility");
+					// check boxes
+					model_visibility = GuiCheckBox((Rectangle) {(float) GetScreenWidth() - (group_width + panel_width)/2.4, 70.0f, check_width, 20.0f}, "Model", model_visibility);
+					box_visibility = GuiCheckBox((Rectangle) {(float) GetScreenWidth() - (group_width + panel_width)/3.5, 70.0f, check_width, 20.0f}, "Box", box_visibility);
+					radar_visibility = GuiCheckBox((Rectangle) {(float) GetScreenWidth() - (group_width + panel_width)/6.6, 70.0f, check_width, 20.0f}, "Radar", radar_visibility);
+
+					GuiGroupBox((Rectangle) {(float) GetScreenWidth() - (group_width + panel_width)/2, 140.0, group_width, 60.0}, "Sceen visibility");
+					grid_visibility = GuiCheckBox((Rectangle) {(float) GetScreenWidth() - (group_width + panel_width)/2.4, 160.0f, check_width, 20.0f}, "Grid", grid_visibility);
+					gizmo_visibility = GuiCheckBox((Rectangle) {(float) GetScreenWidth() - (group_width + panel_width)/3.5, 160.0f, check_width, 20.0f}, "Gizmo", gizmo_visibility);
+
 					break;
 				case 3:
 					GuiPanel(PanelBox, "Tools");
-					Radar_Group(&x_radar, &y_radar, &z_radar, &distance_radar, &azymuth_radar, &elevation_radar, &radar_combo, &lambda, &freq, &group_width, &panel_width, &slider_width);
-					Camera_Group(&camera.position.x, &camera.position.y, &camera.position.z, &distance_camera, &azymuth_camera, &elevation_camera, &camera_combo, &group_width, &panel_width, &slider_width);
+					RadarSet = Radar_Group(&x_radar, &y_radar, &z_radar, &distance_radar, &azymuth_radar, &elevation_radar, &radar_combo, &lambda, &freq, &group_width, &panel_width, &slider_width);
+					CamSet = Camera_Group(&camera.position.x, &camera.position.y, &camera.position.z, &distance_camera, &azymuth_camera, &elevation_camera, &camera_combo, &group_width, &panel_width, &slider_width);
 					
-					Object_Group(&import_btn, &material_combo, &group_width, &panel_width, name);
+					Object_Group(&import_btn, &material_combo, &group_width, &panel_width, &slider_width, name, &model_scale);
 
 					if(import_btn)
 					{
-						//UnloadModel(model);
 						toggle(&import_state.windowActive);
 					}
 						if(import_state.windowActive)
 						{
 							DrawRectangle(0.0f, 0.0f, (float) GetScreenWidth(), (float) GetScreenHeight(), Fade(GRAY, 0.8f));
 						}
-					importWindow(&import_state, &model, model_name, name);
+					importWindow(&import_state, &model, model_name, name, &import_message);
 					GuiFileDialog(&import_state);
 
-					
 					break;
 				case 4:
 					if(HelpButton) message_status = !message_status;
@@ -220,6 +252,20 @@ int main(int argc, char **argv)
 		if(message_status) helpWindow(&message_status);
 			// save window
 		if(save) saveWindow(&save, data_file);
+			// invalid model import handler
+		if(import_message) import_error_window(&import_message);
+
+		// Radar & Camera polar setting
+		if(RadarSet)
+		{
+			azymuth_radar = azymuth_camera;
+			elevation_radar = elevation_camera;
+		}
+		if(CamSet)
+		{
+			azymuth_camera = azymuth_radar;
+			elevation_camera = elevation_radar;
+		}
 
 		EndDrawing();
 	}

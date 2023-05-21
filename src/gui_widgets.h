@@ -3,8 +3,18 @@
 #undef RAYGUI_IMPLEMENTATION
 #define GUI_FILE_DIALOG_IMPLEMENTATION
 #include "raygui/gui_file_dialog.h"
+#include <stdbool.h>
 
-void importWindow(GuiFileDialogState *import_state, Model *model, char *model_name, char *name)
+int import_error_window(int *status)
+{
+	Rectangle window = {(float) GetScreenWidth()/8, (float) GetScreenHeight()/8, (float) GetScreenWidth()/4, (float) GetScreenHeight()/4};
+	int gui = GuiMessageBox(window, GuiIconText(ICON_GEAR_EX, "Invalid model extension!"), TextFormat("%s", "Supported extension: .obj"), "Ok");
+
+	if( (gui == 0) || (gui == 1) ) *status = 0;
+	return gui;
+}
+
+void importWindow(GuiFileDialogState *import_state, Model *model, char *model_name, char *name, int *message)
 {
 	if(import_state->SelectFilePressed)
 	{
@@ -14,6 +24,10 @@ void importWindow(GuiFileDialogState *import_state, Model *model, char *model_na
 			strcpy(name, TextFormat("%s", import_state->fileNameText));
 			UnloadModel(*model);
 			*model = LoadModel(model_name);
+		}
+		else
+		{ 
+			*message = 1;
 		}
 		import_state->SelectFilePressed = false;
 	}
@@ -26,7 +40,7 @@ int helpWindow(int *message)
 	DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(RAYWHITE, 0.8f));
 	int gui = GuiMessageBox(window, GuiIconText(ICON_FILETYPE_INFO, "HELP"), "SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics", "Ok");
 
-	// Text section
+// Text section
 	DrawText("Short cuts keys:", GetScreenWidth()/4 + 10, GetScreenHeight()/4 + 40, 20, BLACK);
 
 	DrawText(TextFormat("\t\tNew Project"), GetScreenWidth()/4 + 10, GetScreenHeight()/4 + 70, 20, BLACK);
@@ -100,7 +114,7 @@ void File(float *panel_width, float *btn_width, float *btn_height, int *pad_y, M
 
 }
 // Tools panel
-void Radar_Group(float *x_radar, float *y_radar, float *z_radar, float *distance_radar, float *azymuth_radar, float *elevation_radar, int *radar_combo, float *lambda, float *freq, float *group_width, float *panel_width, float *slider_width)
+int Radar_Group(float *x_radar, float *y_radar, float *z_radar, float *distance_radar, float *azymuth_radar, float *elevation_radar, int *radar_combo, float *lambda, float *freq, float *group_width, float *panel_width, float *slider_width)
 {
 		// Radar Group
 	GuiGroupBox((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2, 50.0, *group_width, 260.0}, "Radar Settings");
@@ -111,8 +125,9 @@ void Radar_Group(float *x_radar, float *y_radar, float *z_radar, float *distance
 	
 	if (*radar_combo == 0)
 	{
+			// coordinats 
 		Cartesian2Polar(x_radar, y_radar, z_radar, distance_radar, azymuth_radar, elevation_radar);
-		
+	
 		*x_radar = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 95.0, *slider_width, 20.0}, "X: ", TextFormat("%.2f m", *x_radar), *x_radar, -100, 100);
 		
 		*y_radar = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 135.0, *slider_width, 20.0}, "Y: ", TextFormat("%.2f m", *y_radar), *y_radar, -100, 100);
@@ -122,6 +137,7 @@ void Radar_Group(float *x_radar, float *y_radar, float *z_radar, float *distance
 	}
 	else if (*radar_combo == 1)
 	{
+			// coordinats 
 		Polar2Cartesian(x_radar, y_radar, z_radar, distance_radar, azymuth_radar, elevation_radar);
 		
 		*distance_radar = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 95.0, *slider_width, 20.0}, "Distance", TextFormat("%.2f m", *distance_radar), *distance_radar, 0, 100);
@@ -131,17 +147,21 @@ void Radar_Group(float *x_radar, float *y_radar, float *z_radar, float *distance
 		*elevation_radar = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 175.0, *slider_width, 20.0}, "Elevation", TextFormat("%.2f °", *elevation_radar), *elevation_radar, -90, 90);
 	}
 
+	int CamSet = GuiButton((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/6.6, 215.0f, 80.0f, 20.0f}, "CamSet");
+
 	GuiLabel((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.5, 215.0, *group_width, 20.0}, "Radar Params");
 	
 	*freq = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 240.0, *slider_width, 20.0}, "Frequency", TextFormat("%.2f", *freq), *freq, 1, 999.99);
 
 	*lambda = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 280.0, *slider_width, 20.0}, "Lambda", TextFormat("%.2f", *lambda), *lambda, 1, 999.99);
+
+	return CamSet;
 }
 
-void Camera_Group(float *x_camera, float *y_camera, float *z_camera, float *distance_camera, float *azymuth_camera, float *elevation_camera, int *camera_combo, float *group_width, float *panel_width, float *slider_width)
+int Camera_Group(float *x_camera, float *y_camera, float *z_camera, float *distance_camera, float *azymuth_camera, float *elevation_camera, int *camera_combo, float *group_width, float *panel_width, float *slider_width)
 {
 	// Camera Group	
-	GuiGroupBox((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2, 340.0, *group_width, 180.0}, "Camera Settings");
+	GuiGroupBox((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2, 340.0, *group_width, 220.0}, "Camera Settings");
 
 	GuiLabel((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.5, 360.0, *group_width, 20.0}, "Camera Position");
 	
@@ -161,26 +181,31 @@ void Camera_Group(float *x_camera, float *y_camera, float *z_camera, float *dist
 	{
 		Polar2Cartesian(x_camera, y_camera, z_camera, distance_camera, azymuth_camera, elevation_camera);
 
-		*distance_camera = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 400.0, *slider_width, 20.0}, "Distance", TextFormat("%.2f m", *distance_camera), *distance_camera, -100, 100);
+		*distance_camera = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 400.0, *slider_width, 20.0}, "Distance", TextFormat("%.2f m", *distance_camera), *distance_camera, 0, 100);
 		
 		*azymuth_camera = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 440.0, *slider_width, 20.0}, "Azymuth", TextFormat("%.2f °", *azymuth_camera), *azymuth_camera, 0, 360);
 			
 		*elevation_camera = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 480.0, *slider_width, 20.0}, "Elevation", TextFormat("%.2f °", *elevation_camera), *elevation_camera, -90, 90);
 	}
+
+	int RadarSet = GuiButton((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/6.6, 520.0f, 80.0f, 20.0f}, "RadarSet");
+
+	return RadarSet;
 }
 
-void Object_Group(bool *import_btn, int *material_combo, float *group_width, float *panel_width, char *name)
+void Object_Group(bool *import_btn, int *material_combo, float *group_width, float *panel_width, float *slider_width, char *name, float *model_scale)
 {
 			// Object Group
-	GuiGroupBox((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2, 540.0, *group_width, 100.0}, "Object Settings");
+	GuiGroupBox((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2, 580.0, *group_width, 140.0}, "Object Settings");
 		
-	GuiLabel((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.2, 560.0, *group_width/2, 20.0}, name);
+	GuiLabel((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.2, 600.0, *group_width/2, 20.0}, name);
 
-	*import_btn = GuiButton((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/3.5, 560.0, *group_width/2, 20.0}, "Import");
+	*import_btn = GuiButton((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/3.5, 600.0, *group_width/2, 20.0}, "Import");
 	
-	GuiLabel((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.5, 600.0, *group_width, 20.0}, "Material");
+	GuiLabel((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.5, 640.0, *group_width, 20.0}, "Material");
 
-	*material_combo = GuiComboBox((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/3.5, 600.0, *group_width/2, 20.0}, "PEC;Al;Cu", *material_combo);
+	*material_combo = GuiComboBox((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/3.5, 640.0, *group_width/2, 20.0}, "PEC;Al;Cu", *material_combo);
 
+	*model_scale = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 680.0, *slider_width, 20.0}, "Scale", TextFormat("%.2f", *model_scale), *model_scale, 0.1, 1);
 }
 
