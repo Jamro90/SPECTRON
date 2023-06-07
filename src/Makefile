@@ -1,6 +1,6 @@
-CC=gcc
+CC=clang
 PROG = spectron
-SRC=main.c
+SRC=main.c gui_maker.c chart_maker.c
 # Objects for Linux
 OBJ=$(SRC:.c=.o)
 # Flags for Linux
@@ -14,7 +14,7 @@ all: $(PROG)
 
 # finale compilation from object files
 $(PROG): $(OBJ)
-	@$(CC) -o $@ $^ $(LFLAGS)
+	@$(CC) `pkg-config --cflags raylib` -o $@ $^ $(LFLAGS) `pkg-config --libs raylib`
 	@echo "Program Compiled!"
 
 # precompilation for creating objects files

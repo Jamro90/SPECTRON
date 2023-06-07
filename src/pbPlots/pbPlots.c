@@ -435,7 +435,7 @@ RGBABitmapImageReference *CreateRGBABitmapImageReference(){
 
   return reference;
 }
-_Bool RectanglesOverlap(Rectangle *r1, Rectangle *r2){
+_Bool Rectangle_pbsOverlap(Rectangle_pb *r1, Rectangle_pb *r2){
   _Bool overlap;
 
   overlap = false;
@@ -447,29 +447,29 @@ _Bool RectanglesOverlap(Rectangle *r1, Rectangle *r2){
 
   return overlap;
 }
-Rectangle *CreateRectangle(double x1, double y1, double x2, double y2){
-  Rectangle *r;
-  r = (Rectangle *)calloc(sizeof(Rectangle), 1);
+Rectangle_pb *CreateRectangle(double x1, double y1, double x2, double y2){
+  Rectangle_pb *r;
+  r = (Rectangle_pb *)calloc(sizeof(Rectangle_pb), 1);
   r->x1 = x1;
   r->y1 = y1;
   r->x2 = x2;
   r->y2 = y2;
   return r;
 }
-void CopyRectangleValues(Rectangle *rd, Rectangle *rs){
+void CopyRectangleValues(Rectangle_pb *rd, Rectangle_pb *rs){
   rd->x1 = rs->x1;
   rd->y1 = rs->y1;
   rd->x2 = rs->x2;
   rd->y2 = rs->y2;
 }
-void DrawXLabelsForPriority(double p, double xMin, double oy, double xMax, double xPixelMin, double xPixelMax, NumberReference *nextRectangle, RGBA *gridLabelColor, RGBABitmapImage *canvas, double *xGridPositions, size_t xGridPositionsLength, StringArrayReference *xLabels, NumberArrayReference *xLabelPriorities, Rectangle **occupied, size_t occupiedLength, _Bool textOnBottom){
+void DrawXLabelsForPriority(double p, double xMin, double oy, double xMax, double xPixelMin, double xPixelMax, NumberReference *nextRectangle, RGBA *gridLabelColor, RGBABitmapImage *canvas, double *xGridPositions, size_t xGridPositionsLength, StringArrayReference *xLabels, NumberArrayReference *xLabelPriorities, Rectangle_pb **occupied, size_t occupiedLength, _Bool textOnBottom){
   _Bool overlap, currentOverlaps;
   double i, j, x, px, padding;
   wchar_t *text;
   size_t textLength;
-  Rectangle *r;
+  Rectangle_pb *r;
 
-  r = (Rectangle *)calloc(sizeof(Rectangle), 1);
+  r = (Rectangle_pb *)calloc(sizeof(Rectangle_pb), 1);
   padding = 10.0;
 
   overlap = false;
@@ -499,7 +499,7 @@ void DrawXLabelsForPriority(double p, double xMin, double oy, double xMax, doubl
       currentOverlaps = false;
 
       for(j = 0.0; j < nextRectangle->numberValue; j = j + 1.0){
-        currentOverlaps = currentOverlaps || RectanglesOverlap(r, occupied[(int)(j)]);
+        currentOverlaps = currentOverlaps || Rectangle_pbsOverlap(r, occupied[(int)(j)]);
       }
 
       if( !currentOverlaps  && p == 1.0){
@@ -538,14 +538,14 @@ void DrawXLabelsForPriority(double p, double xMin, double oy, double xMax, doubl
     }
   }
 }
-void DrawYLabelsForPriority(double p, double yMin, double ox, double yMax, double yPixelMin, double yPixelMax, NumberReference *nextRectangle, RGBA *gridLabelColor, RGBABitmapImage *canvas, double *yGridPositions, size_t yGridPositionsLength, StringArrayReference *yLabels, NumberArrayReference *yLabelPriorities, Rectangle **occupied, size_t occupiedLength, _Bool textOnLeft){
+void DrawYLabelsForPriority(double p, double yMin, double ox, double yMax, double yPixelMin, double yPixelMax, NumberReference *nextRectangle, RGBA *gridLabelColor, RGBABitmapImage *canvas, double *yGridPositions, size_t yGridPositionsLength, StringArrayReference *yLabels, NumberArrayReference *yLabelPriorities, Rectangle_pb **occupied, size_t occupiedLength, _Bool textOnLeft){
   _Bool overlap, currentOverlaps;
   double i, j, y, py, padding;
   wchar_t *text;
   size_t textLength;
-  Rectangle *r;
+  Rectangle_pb *r;
 
-  r = (Rectangle *)calloc(sizeof(Rectangle), 1);
+  r = (Rectangle_pb *)calloc(sizeof(Rectangle_pb), 1);
   padding = 10.0;
 
   overlap = false;
@@ -575,7 +575,7 @@ void DrawYLabelsForPriority(double p, double yMin, double ox, double yMax, doubl
       currentOverlaps = false;
 
       for(j = 0.0; j < nextRectangle->numberValue; j = j + 1.0){
-        currentOverlaps = currentOverlaps || RectanglesOverlap(r, occupied[(int)(j)]);
+        currentOverlaps = currentOverlaps || Rectangle_pbsOverlap(r, occupied[(int)(j)]);
       }
 
       /* Draw labels with priority 1 if they do not overlap anything else. */
@@ -749,9 +749,9 @@ double MapYCoordinateAutoSettings(double y, RGBABitmapImage *image, double *ys, 
 }
 double MapXCoordinateBasedOnSettings(double x, ScatterPlotSettings *settings){
   double xMin, xMax, xPadding, xPixelMin, xPixelMax;
-  Rectangle *boundaries;
+  Rectangle_pb *boundaries;
 
-  boundaries = (Rectangle *)calloc(sizeof(Rectangle), 1);
+  boundaries = (Rectangle_pb *)calloc(sizeof(Rectangle_pb), 1);
   ComputeBoundariesBasedOnSettings(settings, boundaries);
   xMin = boundaries->x1;
   xMax = boundaries->x2;
@@ -769,9 +769,9 @@ double MapXCoordinateBasedOnSettings(double x, ScatterPlotSettings *settings){
 }
 double MapYCoordinateBasedOnSettings(double y, ScatterPlotSettings *settings){
   double yMin, yMax, yPadding, yPixelMin, yPixelMax;
-  Rectangle *boundaries;
+  Rectangle_pb *boundaries;
 
-  boundaries = (Rectangle *)calloc(sizeof(Rectangle), 1);
+  boundaries = (Rectangle_pb *)calloc(sizeof(Rectangle_pb), 1);
   ComputeBoundariesBasedOnSettings(settings, boundaries);
   yMin = boundaries->y1;
   yMax = boundaries->y2;
@@ -885,7 +885,7 @@ _Bool DrawScatterPlot(RGBABitmapImageReference *canvasReference, double width, d
 }
 _Bool DrawScatterPlotFromSettings(RGBABitmapImageReference *canvasReference, ScatterPlotSettings *settings, StringReference *errorMessage){
   double xMin, xMax, yMin, yMax, xLength, yLength, i, x, y, xPrev, yPrev, px, py, pxPrev, pyPrev, originX, originY, p, l, plot;
-  Rectangle *boundaries;
+  Rectangle_pb *boundaries;
   double xPadding, yPadding, originXPixels, originYPixels;
   double xPixelMin, yPixelMin, xPixelMax, yPixelMax, xLengthPixels, yLengthPixels, axisLabelPadding;
   NumberReference *nextRectangle, *x1Ref, *y1Ref, *x2Ref, *y2Ref, *patternOffset;
@@ -900,7 +900,7 @@ _Bool DrawScatterPlotFromSettings(RGBABitmapImageReference *canvasReference, Sca
   size_t xGridPositionsLength, yGridPositionsLength;
   StringArrayReference *xLabels, *yLabels;
   NumberArrayReference *xLabelPriorities, *yLabelPriorities;
-  Rectangle **occupied;
+  Rectangle_pb **occupied;
   size_t occupiedLength;
   _Bool *linePattern;
   size_t linePatternLength;
@@ -914,7 +914,7 @@ _Bool DrawScatterPlotFromSettings(RGBABitmapImageReference *canvasReference, Sca
 
   if(success){
 
-    boundaries = (Rectangle *)calloc(sizeof(Rectangle), 1);
+    boundaries = (Rectangle_pb *)calloc(sizeof(Rectangle_pb), 1);
     ComputeBoundariesBasedOnSettings(settings, boundaries);
     xMin = boundaries->x1;
     yMin = boundaries->y1;
@@ -1032,7 +1032,7 @@ if(settings->yAxisLeft){
     originTextXPixels = MapXCoordinate(originTextX, xMin, xMax, xPixelMin, xPixelMax);
 
     /* Labels */
-    occupied = (Rectangle**)calloc(sizeof(Rectangle) * ((double)xLabels->stringArrayLength + (double)yLabels->stringArrayLength), 1);
+    occupied = (Rectangle_pb**)calloc(sizeof(Rectangle_pb) * ((double)xLabels->stringArrayLength + (double)yLabels->stringArrayLength), 1);
     occupiedLength = (double)xLabels->stringArrayLength + (double)yLabels->stringArrayLength;
     for(i = 0.0; i < (double)occupiedLength; i = i + 1.0){
       occupied[(int)(i)] = CreateRectangle(0.0, 0.0, 0.0, 0.0);
@@ -1219,7 +1219,7 @@ if(settings->yAxisLeft){
 
   return success;
 }
-void ComputeBoundariesBasedOnSettings(ScatterPlotSettings *settings, Rectangle *boundaries){
+void ComputeBoundariesBasedOnSettings(ScatterPlotSettings *settings, Rectangle_pb *boundaries){
   ScatterPlotSeries *sp;
   double plot, xMin, xMax, yMin, yMax;
 
@@ -1508,7 +1508,7 @@ _Bool DrawBarPlotFromSettings(RGBABitmapImageReference *canvasReference, BarPlot
   double groupSeparation, barSeparation, barWidth, textwidth;
   StringArrayReference *yLabels;
   NumberArrayReference *yLabelPriorities;
-  Rectangle **occupied;
+  Rectangle_pb **occupied;
   size_t occupiedLength;
   NumberReference *nextRectangle;
   RGBA *gridLabelColor, *barColor;
@@ -1589,7 +1589,7 @@ _Bool DrawBarPlotFromSettings(RGBABitmapImageReference *canvasReference, BarPlot
     }
 
     /* Labels */
-    occupied = (Rectangle**)calloc(sizeof(Rectangle) * ((double)yLabels->stringArrayLength), 1);
+    occupied = (Rectangle_pb**)calloc(sizeof(Rectangle_pb) * ((double)yLabels->stringArrayLength), 1);
     occupiedLength = (double)yLabels->stringArrayLength;
     for(i = 0.0; i < (double)occupiedLength; i = i + 1.0){
       occupied[(int)(i)] = CreateRectangle(0.0, 0.0, 0.0, 0.0);

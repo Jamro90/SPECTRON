@@ -1,6 +1,6 @@
+#include "gui_maker.h"
 #include "calc.h"
-#include "gui_widgets.h"
-
+#include "chart_maker.h"
 #define _CRT_SECURE_NO_WARNINGS_
 
 #ifdef _WIN32
@@ -14,6 +14,7 @@
 // SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics
 int main(int argc, char **argv)
 {
+//	cartesian_plot();
 	InitWindow(GetScreenWidth(), GetScreenHeight(), "SPECTRON");
 
 	// program set

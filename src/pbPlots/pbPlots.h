@@ -18,8 +18,8 @@ void Free(void *addr);
 struct RGBABitmapImageReference;
 typedef struct RGBABitmapImageReference RGBABitmapImageReference;
 
-struct Rectangle;
-typedef struct Rectangle Rectangle;
+struct Rectangle_pb;
+typedef struct Rectangle_pb Rectangle_pb;
 
 struct ScatterPlotSeries;
 typedef struct ScatterPlotSeries ScatterPlotSeries;
@@ -106,7 +106,7 @@ struct RGBABitmapImageReference{
   RGBABitmapImage *image;
 };
 
-struct Rectangle{
+struct Rectangle_pb{
   double x1;
   double x2;
   double y1;
@@ -346,12 +346,12 @@ RGBA **Get8HighContrastColors(size_t *returnArrayLength);
 void DrawFilledRectangleWithBorder(RGBABitmapImage *image, double x, double y, double w, double h, RGBA *borderColor, RGBA *fillColor);
 RGBABitmapImageReference *CreateRGBABitmapImageReference();
 
-_Bool RectanglesOverlap(Rectangle *r1, Rectangle *r2);
-Rectangle *CreateRectangle(double x1, double y1, double x2, double y2);
-void CopyRectangleValues(Rectangle *rd, Rectangle *rs);
+_Bool Rectangle_pbsOverlap(Rectangle_pb *r1, Rectangle_pb *r2);
+Rectangle_pb *CreateRectangle(double x1, double y1, double x2, double y2);
+void CopyRectangleValues(Rectangle_pb *rd, Rectangle_pb *rs);
 
-void DrawXLabelsForPriority(double p, double xMin, double oy, double xMax, double xPixelMin, double xPixelMax, NumberReference *nextRectangle, RGBA *gridLabelColor, RGBABitmapImage *canvas, double *xGridPositions, size_t xGridPositionsLength, StringArrayReference *xLabels, NumberArrayReference *xLabelPriorities, Rectangle **occupied, size_t occupiedLength, _Bool textOnBottom);
-void DrawYLabelsForPriority(double p, double yMin, double ox, double yMax, double yPixelMin, double yPixelMax, NumberReference *nextRectangle, RGBA *gridLabelColor, RGBABitmapImage *canvas, double *yGridPositions, size_t yGridPositionsLength, StringArrayReference *yLabels, NumberArrayReference *yLabelPriorities, Rectangle **occupied, size_t occupiedLength, _Bool textOnLeft);
+void DrawXLabelsForPriority(double p, double xMin, double oy, double xMax, double xPixelMin, double xPixelMax, NumberReference *nextRectangle, RGBA *gridLabelColor, RGBABitmapImage *canvas, double *xGridPositions, size_t xGridPositionsLength, StringArrayReference *xLabels, NumberArrayReference *xLabelPriorities, Rectangle_pb **occupied, size_t occupiedLength, _Bool textOnBottom);
+void DrawYLabelsForPriority(double p, double yMin, double ox, double yMax, double yPixelMin, double yPixelMax, NumberReference *nextRectangle, RGBA *gridLabelColor, RGBABitmapImage *canvas, double *yGridPositions, size_t yGridPositionsLength, StringArrayReference *yLabels, NumberArrayReference *yLabelPriorities, Rectangle_pb **occupied, size_t occupiedLength, _Bool textOnLeft);
 double *ComputeGridLinePositions(size_t *returnArrayLength, double cMin, double cMax, StringArrayReference *labels, NumberArrayReference *priorities);
 double MapYCoordinate(double y, double yMin, double yMax, double yPixelMin, double yPixelMax);
 double MapXCoordinate(double x, double xMin, double xMax, double xPixelMin, double xPixelMax);
@@ -361,14 +361,14 @@ double MapXCoordinateBasedOnSettings(double x, ScatterPlotSettings *settings);
 double MapYCoordinateBasedOnSettings(double y, ScatterPlotSettings *settings);
 double GetDefaultPaddingPercentage();
 
-void DrawText(RGBABitmapImage *canvas, double x, double y, wchar_t *text, size_t textLength, RGBA *color);
+void DrawText_pb(RGBABitmapImage *canvas, double x, double y, wchar_t *text, size_t textLength, RGBA *color);
 void DrawTextUpwards(RGBABitmapImage *canvas, double x, double y, wchar_t *text, size_t textLength, RGBA *color);
 
 ScatterPlotSettings *GetDefaultScatterPlotSettings();
 ScatterPlotSeries *GetDefaultScatterPlotSeriesSettings();
 _Bool DrawScatterPlot(RGBABitmapImageReference *canvasReference, double width, double height, double *xs, size_t xsLength, double *ys, size_t ysLength, StringReference *errorMessage);
 _Bool DrawScatterPlotFromSettings(RGBABitmapImageReference *canvasReference, ScatterPlotSettings *settings, StringReference *errorMessage);
-void ComputeBoundariesBasedOnSettings(ScatterPlotSettings *settings, Rectangle *boundaries);
+void ComputeBoundariesBasedOnSettings(ScatterPlotSettings *settings, Rectangle_pb *boundaries);
 _Bool ScatterPlotFromSettingsValid(ScatterPlotSettings *settings, StringReference *errorMessage);
 
 BarPlotSettings *GetDefaultBarPlotSettings();
@@ -402,7 +402,7 @@ void DeleteImage(RGBABitmapImage *image);
 double ImageWidth(RGBABitmapImage *image);
 double ImageHeight(RGBABitmapImage *image);
 void SetPixel(RGBABitmapImage *image, double x, double y, RGBA *color);
-void DrawPixel(RGBABitmapImage *image, double x, double y, RGBA *color);
+void DrawPixel_pb(RGBABitmapImage *image, double x, double y, RGBA *color);
 double CombineAlpha(double as, double ad);
 double AlphaBlend(double cs, double as, double cd, double ad, double ao);
 void DrawHorizontalLine1px(RGBABitmapImage *image, double x, double y, double length, RGBA *color);
@@ -423,16 +423,16 @@ RGBA *GetImagePixel(RGBABitmapImage *image, double x, double y);
 void HorizontalFlip(RGBABitmapImage *img);
 void DrawFilledRectangle(RGBABitmapImage *image, double x, double y, double w, double h, RGBA *color);
 RGBABitmapImage *RotateAntiClockwise90Degrees(RGBABitmapImage *image);
-void DrawCircle(RGBABitmapImage *canvas, double xCenter, double yCenter, double radius, RGBA *color);
+void DrawCircle_pb(RGBABitmapImage *canvas, double xCenter, double yCenter, double radius, RGBA *color);
 void BresenhamsCircleDrawingAlgorithm(RGBABitmapImage *canvas, double xCenter, double yCenter, double radius, RGBA *color);
 void DrawCircleMidpointAlgorithm(RGBABitmapImage *canvas, double xCenter, double yCenter, double radius, RGBA *color);
 void DrawCircleBasicAlgorithm(RGBABitmapImage *canvas, double xCenter, double yCenter, double radius, RGBA *color);
 void DrawFilledCircle(RGBABitmapImage *canvas, double x, double y, double r, RGBA *color);
 void DrawFilledCircleMidpointAlgorithm(RGBABitmapImage *canvas, double xCenter, double yCenter, double radius, RGBA *color);
 void DrawFilledCircleBasicAlgorithm(RGBABitmapImage *canvas, double xCenter, double yCenter, double radius, RGBA *color);
-void DrawTriangle(RGBABitmapImage *canvas, double xCenter, double yCenter, double height, RGBA *color);
+void DrawTriangle_pb(RGBABitmapImage *canvas, double xCenter, double yCenter, double height, RGBA *color);
 void DrawFilledTriangle(RGBABitmapImage *canvas, double xCenter, double yCenter, double height, RGBA *color);
-void DrawLine(RGBABitmapImage *canvas, double x1, double y1, double x2, double y2, double thickness, RGBA *color);
+void DrawLine_pb(RGBABitmapImage *canvas, double x1, double y1, double x2, double y2, double thickness, RGBA *color);
 void DrawLineBresenhamsAlgorithmThick(RGBABitmapImage *canvas, double x1, double y1, double x2, double y2, double thickness, RGBA *color);
 void DrawLineBresenhamsAlgorithm(RGBABitmapImage *canvas, double x1, double y1, double x2, double y2, RGBA *color);
 void DrawLineBresenhamsAlgorithmThickPatterned(RGBABitmapImage *canvas, double x1, double y1, double x2, double y2, double thickness, _Bool *pattern, size_t patternLength, NumberReference *offset, RGBA *color);
@@ -580,7 +580,7 @@ void DrawDigitCharacter(RGBABitmapImage *image, double topx, double topy, double
 
 wchar_t *GetPixelFontData(size_t *returnArrayLength);
 void DrawAsciiCharacter(RGBABitmapImage *image, double topx, double topy, wchar_t a, RGBA *color);
-double GetTextWidth(wchar_t *text, size_t textLength);
+double GetTextWidth_pb(wchar_t *text, size_t textLength);
 double GetTextHeight(wchar_t *text, size_t textLength);
 
 void AssertFalse(_Bool b, NumberReference *failures);
