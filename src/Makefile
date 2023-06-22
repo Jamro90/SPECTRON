@@ -1,11 +1,11 @@
 CC=clang
 PROG = spectron
-SRC=main.c gui_maker.c chart_maker.c
+SRC=main.c gui_maker.c calc.c chart_maker.c
 # Objects for Linux
 OBJ=$(SRC:.c=.o)
 # Flags for Linux
 LFLAGS=-s -Wall -std=c99 -ldl -lrt -lm -lraylib -lpthread -lX11
-WINFLAGS=-I raylib/src -L raylib/src -lraylib -lopengl32 -lgdi32 -lwinmm -static -static-libgcc 
+WINFLAGS=-I raylib/src -L raylib/src -lraylib -lopengl32 -lgdi32 -lwinmm -static -static-libgcc
 # Declaring rules not target files
 .PHONY: all win32 win64 clear 
 
@@ -14,21 +14,21 @@ all: $(PROG)
 
 # finale compilation from object files
 $(PROG): $(OBJ)
-	@$(CC) `pkg-config --cflags raylib` -o $@ $^ $(LFLAGS) `pkg-config --libs raylib`
+	@$(CC) `pkg-config --cflags plplot` -o $@ $^ $(LFLAGS) `pkg-config --libs plplot`
 	@echo "Program Compiled!"
 
 # precompilation for creating objects files
 %.o: %.c
-	@$(CC) -c -o $@ $< $(LFLAGS)
+	@$(CC) -c `pkg-config --cflags plplot` -o $@ $< $(LFLAGS) `pkg-config --libs plplot`
 	@echo "Objects Compiled!"
 
 # Cleaning rule for program compilation & objects files
 clean:
-	@rm -rf *.o $(PROG) $(PROG).exe
+	@rm -rf *.o $(PROG) $(PROG)*.exe
 	@echo "Cleaning Done!"
 
 win32: $(SRC)
-	@i686-w64-mingw32-gcc $^ $(WINFLAGS) -o $(PROG)_32.exe
+	@i686-w64-mingw32-gcc `pkg-config --cflags plplot` $^ $(WINFLAGS) -o $(PROG)_32.exe `pkg-config --libs plplot`
 
 win64: $(SRC)
-	@x86_64-w64-mingw32-gcc $^ $(WINFLAGS) -o $(PROG)_64.exe
+	@x86_64-w64-mingw32-gcc `pkg-config --cflags plplot` $^ $(WINFLAGS) -o $(PROG)_64.exe -L/usr/lib/gcc/x86_64-pc-linux-gnu/12.3.0

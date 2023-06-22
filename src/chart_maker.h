@@ -1,12 +1,18 @@
 #ifndef CHART_MAKER
 #define CHART_MAKER
 
+#include "plplot_h/plplot.h"
 #include "chart_maker.h"
-//#include "pbPlots/pbPlots.h"
-//#include "pbPlots/supportLib.h"
 
-void do_nothing(void);
+double max_number(double *array);
 
-#endif
+double min_number(double *array);
+
+void PolarChart(double *x, double *y);
+
+void LogChart(double *x, double *y);
+
+void GeneralChart(double *x, double *y);
 
 
+#endif // CHART_MAKER

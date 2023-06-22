@@ -1,7 +1,11 @@
 #include "gui_maker.h"
+#include <stdio.h>
+#include <time.h>
+#include <stdlib.h>
 #include "calc.h"
 #include "chart_maker.h"
 #define _CRT_SECURE_NO_WARNINGS_
+#define CHART_ARRAY 1024
 
 #ifdef _WIN32
 	#define PLATFORM "win32"
@@ -14,7 +18,6 @@
 // SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics
 int main(int argc, char **argv)
 {
-//	cartesian_plot();
 	InitWindow(GetScreenWidth(), GetScreenHeight(), "SPECTRON");
 
 	// program set
@@ -29,6 +32,7 @@ int main(int argc, char **argv)
 	bool model_visibility = true;
 	bool radar_visibility = false;
 	bool grid_visibility = false;
+	bool plot_visibility = false;
 	
 	int save = 0;
 	int panel_state = 0;
@@ -48,10 +52,10 @@ int main(int argc, char **argv)
 
 	// widgets preprogram
 	Rectangle PanelBox = {(float) GetScreenWidth() - panel_width, 0.0f, (float) GetScreenWidth() - 10, (float) GetScreenHeight()};
-	Rectangle FileBox = {20.0f, 20.0f, btn_width, btn_height};
-	Rectangle ViewBox = {200.0f, 20.0f, btn_width, btn_height};
-	Rectangle ToolsBox = {380.0f, 20.0f, btn_width, btn_height};
-	Rectangle HelpBox = {560.0f, 20.0f, btn_width, btn_height};
+	Rectangle FileBox = {20.0f, check_width, btn_width, btn_height};
+	Rectangle ViewBox = {200.0f, check_width, btn_width, btn_height};
+	Rectangle ToolsBox = {380.0f, check_width, btn_width, btn_height};
+	Rectangle HelpBox = {560.0f, check_width, btn_width, btn_height};
 		// variables for computing cordinates
 		// radar
 	float x_radar = 1.0;
@@ -105,12 +109,32 @@ int main(int argc, char **argv)
 		// Vectors & Positions
 	Vector3 zero_position = { 0.0f, 0.0f, 0.0f };
 
+		// charts variables
+	PLFLT x_chart[CHART_ARRAY];
+	PLFLT y_chart[CHART_ARRAY];
+
+	// random seed for <test>
+	srand(time(NULL));
 	// FPS set
 	SetTargetFPS(60);
 
+	Image image;
+	Texture2D image2D;
 	// main loop
 	while(!WindowShouldClose())
-	{	
+	{
+		for(int i = 0; i < CHART_ARRAY; ++i)
+		{
+			x_chart[i] = (PLFLT) i/512;
+			y_chart[i] = (PLFLT) rand()/512 ;
+		}
+
+		// plotting using plplot <test>
+		GeneralChart(&x_chart, &y_chart);
+		
+		image = LoadImage("general.png");
+		image2D = LoadTextureFromImage(image);
+
 		// key shot cuts check
 			// grid enable/disable  <Ctrl + G>
 		((IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_G))) ? toggle(&grid_visibility) : NULL;
@@ -192,6 +216,9 @@ int main(int argc, char **argv)
 
 		EndMode3D();
 
+				// plot visibility
+		if(plot_visibility) DrawTextureEx(image2D, (Vector2) {GetScreenWidth() * .01, GetScreenHeight() * .58}, 0.0f, 0.75f, GRAY);
+
 			// Title Text
 			DrawText("SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics", 10.0f, 10.0f, 10, BLACK); 
 			int FileButton = GuiButton(FileBox, "File");
@@ -204,7 +231,7 @@ int main(int argc, char **argv)
 			{
 				case 1:
 					GuiWindowBox(PanelBox, "FILE");
-					File(&panel_width, &btn_width, &btn_height, &pad_y, &model);
+					File(&panel_width, &btn_width, &btn_height, &pad_y, &model, &image, &image2D);
 					break;
 				case 2:
 					GuiPanel(PanelBox, "View");
@@ -218,9 +245,13 @@ int main(int argc, char **argv)
 					grid_visibility = GuiCheckBox((Rectangle) {(float) GetScreenWidth() - (group_width + panel_width)/2.4, 160.0f, check_width, 20.0f}, "Grid", grid_visibility);
 					gizmo_visibility = GuiCheckBox((Rectangle) {(float) GetScreenWidth() - (group_width + panel_width)/3.5, 160.0f, check_width, 20.0f}, "Gizmo", gizmo_visibility);
 
+					GuiGroupBox((Rectangle) {(float) GetScreenWidth() - (group_width + panel_width)/2, 210.0, group_width, 60.0}, "Data visibility");
+					plot_visibility = GuiCheckBox((Rectangle) {(float) GetScreenWidth() - (group_width + panel_width)/3.5, 230.0f, check_width, 20.0f}, "plot", plot_visibility);
+
 					break;
 				case 3:
 					GuiPanel(PanelBox, "Tools");
+					
 					RadarSet = Radar_Group(&x_radar, &y_radar, &z_radar, &distance_radar, &azymuth_radar, &elevation_radar, &radar_combo, &lambda, &freq, &group_width, &panel_width, &slider_width);
 					CamSet = Camera_Group(&camera.position.x, &camera.position.y, &camera.position.z, &distance_camera, &azymuth_camera, &elevation_camera, &camera_combo, &group_width, &panel_width, &slider_width);
 					
@@ -241,7 +272,6 @@ int main(int argc, char **argv)
 				case 4:
 					if(HelpButton) message_status = !message_status;
 					break;
-	
 			}
 		// Front Buttons
 		if(FileButton) panel_state = 1;
@@ -268,9 +298,12 @@ int main(int argc, char **argv)
 			elevation_camera = elevation_radar;
 		}
 
+		
 		EndDrawing();
+		UnloadTexture(image2D);	
+		UnloadImage(image);
+
 	}
-	
 	// program cleaning
 	UnloadModel(model);
 	CloseWindow();

@@ -1,0 +1,56 @@
+<svg width='720px' height='540px' xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink'>
+    <rect fill='#FFFFFF' stroke='#FFFFFF' stroke-width='0px' width='720' height='540' y='0' x='0' ry='0' rx='0' />
+    <text x='360' y = '38' font-family='sans-serif' stroke='#000000' fill='#000000' text-anchor='middle' font-size='16px'>Logarithmic Plot</text>
+    <line stroke='#808080' stroke-width='2px' y2='508' x2='86' y1='64' x1='86' />
+    <line stroke='#808080' stroke-width='2px' y2='508' x2='688' y1='508' x1='86' />
+    <line stroke='#808080' stroke-width='1px' y2='508' x2='86' y1='508' x1='78' />
+    <text x='74' y = '512' font-family='sans-serif' stroke='#000000' fill='#000000' text-anchor='end' font-size='10px'>1</text>
+    <line stroke='#808080' stroke-width='1px' y2='434' x2='86' y1='434' x1='78' />
+    <text x='74' y = '438' font-family='sans-serif' stroke='#000000' fill='#000000' text-anchor='end' font-size='10px'>10</text>
+    <line stroke='#808080' stroke-width='1px' y2='360' x2='86' y1='360' x1='78' />
+    <text x='74' y = '364' font-family='sans-serif' stroke='#000000' fill='#000000' text-anchor='end' font-size='10px'>100</text>
+    <line stroke='#808080' stroke-width='1px' y2='286' x2='86' y1='286' x1='78' />
+    <text x='74' y = '290' font-family='sans-serif' stroke='#000000' fill='#000000' text-anchor='end' font-size='10px'>1000</text>
+    <line stroke='#808080' stroke-width='1px' y2='212' x2='86' y1='212' x1='78' />
+    <text x='74' y = '216' font-family='sans-serif' stroke='#000000' fill='#000000' text-anchor='end' font-size='10px'>10000</text>
+    <line stroke='#808080' stroke-width='1px' y2='138' x2='86' y1='138' x1='78' />
+    <text x='74' y = '142' font-family='sans-serif' stroke='#000000' fill='#000000' text-anchor='end' font-size='10px'>100000</text>
+    <line stroke='#808080' stroke-width='1px' y2='64' x2='86' y1='64' x1='78' />
+    <text x='74' y = '68' font-family='sans-serif' stroke='#000000' fill='#000000' text-anchor='end' font-size='10px'>1000000</text>
+    <line stroke='#808080' stroke-width='1px' y2='516' x2='86' y1='508' x1='86' />
+    <text x='86' y = '532' font-family='sans-serif' stroke='#000000' fill='#000000' text-anchor='middle' font-size='10px'>1910</text>
+    <line stroke='#808080' stroke-width='1px' y2='516' x2='140' y1='508' x1='140' />
+    <text x='140' y = '532' font-family='sans-serif' stroke='#000000' fill='#000000' text-anchor='middle' font-size='10px'>1920</text>
+    <line stroke='#808080' stroke-width='1px' y2='516' x2='195' y1='508' x1='195' />
+    <text x='195' y = '532' font-family='sans-serif' stroke='#000000' fill='#000000' text-anchor='middle' font-size='10px'>1930</text>
+    <line stroke='#808080' stroke-width='1px' y2='516' x2='250' y1='508' x1='250' />
+    <text x='250' y = '532' font-family='sans-serif' stroke='#000000' fill='#000000' text-anchor='middle' font-size='10px'>1940</text>
+    <line stroke='#808080' stroke-width='1px' y2='516' x2='304' y1='508' x1='304' />
+    <text x='304' y = '532' font-family='sans-serif' stroke='#000000' fill='#000000' text-anchor='middle' font-size='10px'>1950</text>
+    <line stroke='#808080' stroke-width='1px' y2='516' x2='359' y1='508' x1='359' />
+    <text x='359' y = '532' font-family='sans-serif' stroke='#000000' fill='#000000' text-anchor='middle' font-size='10px'>1960</text>
+    <line stroke='#808080' stroke-width='1px' y2='516' x2='414' y1='508' x1='414' />
+    <text x='414' y = '532' font-family='sans-serif' stroke='#000000' fill='#000000' text-anchor='middle' font-size='10px'>1970</text>
+    <line stroke='#808080' stroke-width='1px' y2='516' x2='469' y1='508' x1='469' />
+    <text x='469' y = '532' font-family='sans-serif' stroke='#000000' fill='#000000' text-anchor='middle' font-size='10px'>1980</text>
+    <line stroke='#808080' stroke-width='1px' y2='516' x2='523' y1='508' x1='523' />
+    <text x='523' y = '532' font-family='sans-serif' stroke='#000000' fill='#000000' text-anchor='middle' font-size='10px'>1990</text>
+    <line stroke='#808080' stroke-width='1px' y2='516' x2='578' y1='508' x1='578' />
+    <text x='578' y = '532' font-family='sans-serif' stroke='#000000' fill='#000000' text-anchor='middle' font-size='10px'>2000</text>
+    <line stroke='#808080' stroke-width='1px' y2='516' x2='633' y1='508' x1='633' />
+    <text x='633' y = '532' font-family='sans-serif' stroke='#000000' fill='#000000' text-anchor='middle' font-size='10px'>2010</text>
+    <line stroke='#808080' stroke-width='1px' y2='516' x2='688' y1='508' x1='688' />
+    <text x='688' y = '532' font-family='sans-serif' stroke='#000000' fill='#000000' text-anchor='middle' font-size='10px'>2020</text>
+    <circle stroke='#0000FF' stroke-width='0px' fill='#0000FF' r='3' cy='485' cx='86' />
+    <circle stroke='#0000FF' stroke-width='0px' fill='#0000FF' r='3' cy='450' cx='140' />
+    <circle stroke='#0000FF' stroke-width='0px' fill='#0000FF' r='3' cy='399' cx='195' />
+    <circle stroke='#0000FF' stroke-width='0px' fill='#0000FF' r='3' cy='365' cx='250' />
+    <circle stroke='#0000FF' stroke-width='0px' fill='#0000FF' r='3' cy='318' cx='304' />
+    <circle stroke='#0000FF' stroke-width='0px' fill='#0000FF' r='3' cy='301' cx='359' />
+    <circle stroke='#0000FF' stroke-width='0px' fill='#0000FF' r='3' cy='240' cx='414' />
+    <circle stroke='#0000FF' stroke-width='0px' fill='#0000FF' r='3' cy='223' cx='469' />
+    <circle stroke='#0000FF' stroke-width='0px' fill='#0000FF' r='3' cy='196' cx='523' />
+    <circle stroke='#0000FF' stroke-width='0px' fill='#0000FF' r='3' cy='144' cx='578' />
+    <circle stroke='#0000FF' stroke-width='0px' fill='#0000FF' r='3' cy='116' cx='633' />
+    <circle stroke='#0000FF' stroke-width='0px' fill='#0000FF' r='3' cy='72' cx='688' />
+</svg>

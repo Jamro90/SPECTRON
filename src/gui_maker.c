@@ -98,9 +98,10 @@ int saveWindow(int *state, char *INPUT)
 }
 
 // File panel
-void File(float *panel_width, float *btn_width, float *btn_height, int *pad_y, Model *model)
+void File(float *panel_width, float *btn_width, float *btn_height, int *pad_y, Model *model, Image *image, Texture2D *image2D)
 {
-	int NewButon = GuiButton((Rectangle) {(float) GetScreenWidth() - (*panel_width + *btn_width)/2, *pad_y, *btn_width, *btn_height}, GuiIconText(ICON_FILE_NEW, "[N]ew Project"));
+	
+	int NewButton = GuiButton((Rectangle) {(float) GetScreenWidth() - (*panel_width + *btn_width)/2, *pad_y, *btn_width, *btn_height}, GuiIconText(ICON_FILE_NEW, "[N]ew Project"));
 	
 	int SaveButton = GuiButton((Rectangle) {(float) GetScreenWidth() - (*panel_width + *btn_width)/2, (*pad_y)*2, *btn_width, *btn_height}, GuiIconText(ICON_FILE_SAVE, "[S]ave Data"));
 	
@@ -110,14 +111,18 @@ void File(float *panel_width, float *btn_width, float *btn_height, int *pad_y, M
 	
 	if(ExitButton)
 	{
+		UnloadImage(*image);
+		UnloadTexture(*image2D);
 		UnloadModel(*model);
 		CloseWindow();
+		exit(0);
 	}
 
 }
 // Tools panel
 int Radar_Group(float *x_radar, float *y_radar, float *z_radar, float *distance_radar, float *azymuth_radar, float *elevation_radar, int *radar_combo, float *lambda, float *freq, float *group_width, float *panel_width, float *slider_width)
 {
+	int CamSet = 0;
 		// Radar Group
 	GuiGroupBox((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2, 50.0, *group_width, 260.0}, "Radar Settings");
 
@@ -134,8 +139,12 @@ int Radar_Group(float *x_radar, float *y_radar, float *z_radar, float *distance_
 		
 		*y_radar = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 135.0, *slider_width, 20.0}, "Y: ", TextFormat("%.2f m", *y_radar), *y_radar, -100, 100);
 			
-		*z_radar = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 175.0, *slider_width, 20.0}, "Z: ", TextFormat("%.2f m", *z_radar), *z_radar, -100, 100);
+	 	*z_radar = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 175.0, *slider_width, 20.0}, "Z: ", TextFormat("%.2f m", *z_radar), *z_radar, -100, 100);
 	
+		GuiSetState(STATE_DISABLED);
+		CamSet = GuiButton((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/6.6, 215.0f, 80.0f, 20.0f}, "CamSet");
+		GuiSetState(STATE_NORMAL);
+
 	}
 	else if (*radar_combo == 1)
 	{
@@ -147,9 +156,10 @@ int Radar_Group(float *x_radar, float *y_radar, float *z_radar, float *distance_
 		*azymuth_radar = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 135.0, *slider_width, 20.0}, "Azymuth", TextFormat("%.2f °", *azymuth_radar), *azymuth_radar, 0, 360);
 			
 		*elevation_radar = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 175.0, *slider_width, 20.0}, "Elevation", TextFormat("%.2f °", *elevation_radar), *elevation_radar, -90, 90);
-	}
+		
+		CamSet = GuiButton((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/6.6, 215.0f, 80.0f, 20.0f}, "CamSet");
+		}
 
-	int CamSet = GuiButton((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/6.6, 215.0f, 80.0f, 20.0f}, "CamSet");
 
 	GuiLabel((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.5, 215.0, *group_width, 20.0}, "Radar Params");
 	
@@ -162,6 +172,7 @@ int Radar_Group(float *x_radar, float *y_radar, float *z_radar, float *distance_
 
 int Camera_Group(float *x_camera, float *y_camera, float *z_camera, float *distance_camera, float *azymuth_camera, float *elevation_camera, int *camera_combo, float *group_width, float *panel_width, float *slider_width)
 {
+	int RadarSet = 0;
 	// Camera Group	
 	GuiGroupBox((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2, 340.0, *group_width, 220.0}, "Camera Settings");
 
@@ -178,6 +189,10 @@ int Camera_Group(float *x_camera, float *y_camera, float *z_camera, float *dista
 		*y_camera = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 440.0, *slider_width, 20.0}, "Y: ", TextFormat("%.2f m", *y_camera), *y_camera, -100, 100);
 			
 		*z_camera = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 480.0, *slider_width, 20.0}, "Z: ", TextFormat("%.2f m", *z_camera), *z_camera, -100, 100);
+	
+		GuiSetState(STATE_DISABLED);
+		RadarSet = GuiButton((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/6.6, 520.0f, 80.0f, 20.0f}, "RadarSet");
+		GuiSetState(STATE_NORMAL);
 	}
 	else if(*camera_combo == 1)
 	{
@@ -188,9 +203,10 @@ int Camera_Group(float *x_camera, float *y_camera, float *z_camera, float *dista
 		*azymuth_camera = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 440.0, *slider_width, 20.0}, "Azymuth", TextFormat("%.2f °", *azymuth_camera), *azymuth_camera, 0, 360);
 			
 		*elevation_camera = GuiSlider((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/2.4, 480.0, *slider_width, 20.0}, "Elevation", TextFormat("%.2f °", *elevation_camera), *elevation_camera, -90, 90);
+	
+		RadarSet = GuiButton((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/6.6, 520.0f, 80.0f, 20.0f}, "RadarSet");
 	}
 
-	int RadarSet = GuiButton((Rectangle) {(float) GetScreenWidth() - (*group_width + *panel_width)/6.6, 520.0f, 80.0f, 20.0f}, "RadarSet");
 
 	return RadarSet;
 }
