@@ -31,4 +31,4 @@ win32: $(SRC)
 	@i686-w64-mingw32-gcc `pkg-config --cflags plplot` $^ $(WINFLAGS) -o $(PROG)_32.exe `pkg-config --libs plplot`
 
 win64: $(SRC)
-	@x86_64-w64-mingw32-gcc `pkg-config --cflags plplot` $^ $(WINFLAGS) -o $(PROG)_64.exe -L/usr/lib/gcc/x86_64-pc-linux-gnu/12.3.0
+	@x86_64-w64-mingw32-gcc `pkg-config --cflags plplot` $^ $(WINFLAGS) -o $(PROG)_64.exe

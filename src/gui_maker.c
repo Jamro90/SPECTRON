@@ -6,13 +6,26 @@
 #define GUI_FILE_DIALOG_IMPLEMENTATION
 #include "raygui/gui_file_dialog.h"
 #include <stdbool.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <errno.h>
+
+#ifdef _WIN32
+	#define PLATFORM "win32"
+#elif _WIN64
+	#define PLATFORM "win64"
+#elif __linux__
+	#define PLATFORM "linux"
+#endif
 
 int import_error_window(int *status)
 {
+	GuiUnlock();
 	Rectangle window = {(float) GetScreenWidth()/8, (float) GetScreenHeight()/8, (float) GetScreenWidth()/4, (float) GetScreenHeight()/4};
 	int gui = GuiMessageBox(window, GuiIconText(ICON_GEAR_EX, "Invalid model extension!"), TextFormat("%s", "Supported extension: .obj"), "Ok");
 
 	if( (gui == 0) || (gui == 1) ) *status = 0;
+	GuiLock();
 	return gui;
 }
 
@@ -30,6 +43,7 @@ void importWindow(GuiFileDialogState *import_state, Model *model, char *model_na
 		else
 		{ 
 			*message = 1;
+			import_error_window(message);
 		}
 		import_state->SelectFilePressed = false;
 	}
@@ -38,6 +52,7 @@ void importWindow(GuiFileDialogState *import_state, Model *model, char *model_na
 // HELP window properities
 int helpWindow(int *message)
 {
+	GuiUnlock();
 	Rectangle window = {(float) GetScreenWidth()/4, (float) GetScreenHeight()/4, (float) GetScreenWidth()/2, (float) GetScreenHeight()/2};
 	DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(RAYWHITE, 0.8f));
 	int gui = GuiMessageBox(window, GuiIconText(ICON_FILETYPE_INFO, "HELP"), "SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics", "Ok");
@@ -70,20 +85,31 @@ int helpWindow(int *message)
 	DrawText("<Y + Ctrl>", GetScreenWidth()/4 + 300, GetScreenHeight()/4 + 280, 20, BLACK);
 
 	if((gui == 0) || (gui == 1)) *message = 0;
-
+	GuiLock();
 	return gui;
 }
 
 // SAVE window properties
-int saveWindow(int *state, char *INPUT)
+int saveWindow(bool *state, char *INPUT)
 {
+	GuiUnlock();
 	DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(RAYWHITE, 0.8f));
 	int gui = GuiTextInputBox((Rectangle){(float) GetScreenWidth()/2 - 60, (float) GetScreenHeight()/2 - 60, 120.0, 120.0}, GuiIconText(ICON_FILE_SAVE, "Save data"), "File name:", "Save;Cancel", INPUT, 255, NULL);
 	
 	if(gui == 1)
 	{
 		DrawText(TextFormat("%s", INPUT), 200, 200, 30, GREEN);
-//		mkdir(INPUT, 0777);
+
+		if(!strcmp("linux", PLATFORM))
+		{
+			mkdir(INPUT, 0777);
+		}
+		else if(!(strcmp("win32", PLATFORM) || strcmp("win64", PLATFORM)))
+		{
+			_mkdir(INPUT, 0777);
+		}
+		else exit(1);
+
 		*state = false;
 	}
 	
@@ -91,20 +117,27 @@ int saveWindow(int *state, char *INPUT)
 	{
 		DrawText("Save Terminated!", 200, 200, 30, RED);
 		*state = false;
-		//*INPUT = "\0";
+		//strcpy(INPUT, "\0"); 
 	}
 
+	GuiLock();
 	return gui;
 }
 
 // File panel
-void File(float *panel_width, float *btn_width, float *btn_height, int *pad_y, Model *model, Image *image, Texture2D *image2D)
+void File(float *panel_width, float *btn_width, float *btn_height, int *pad_y, Model *model, Image *image, Texture2D *image2D, bool *status, char *INPUT)
 {
 	
 	int NewButton = GuiButton((Rectangle) {(float) GetScreenWidth() - (*panel_width + *btn_width)/2, *pad_y, *btn_width, *btn_height}, GuiIconText(ICON_FILE_NEW, "[N]ew Project"));
 	
 	int SaveButton = GuiButton((Rectangle) {(float) GetScreenWidth() - (*panel_width + *btn_width)/2, (*pad_y)*2, *btn_width, *btn_height}, GuiIconText(ICON_FILE_SAVE, "[S]ave Data"));
 	
+	if(SaveButton)
+	{
+		*status = true;
+		saveWindow(status, INPUT);
+	}
+
 	int InfoButton = GuiButton((Rectangle) {(float) GetScreenWidth() - (*panel_width + *btn_width)/2, (*pad_y)*3, *btn_width, *btn_height}, GuiIconText(ICON_INFO, "[I]nfo"));
 
 	int ExitButton = GuiButton((Rectangle) {(float) GetScreenWidth() - (*panel_width + *btn_width)/2, (*pad_y)*4, *btn_width, *btn_height}, GuiIconText(ICON_EXIT, "Exit [ESC]"));

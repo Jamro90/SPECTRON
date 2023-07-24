@@ -1,11 +1,11 @@
 #include "gui_maker.h"
 #include <stdio.h>
-#include <time.h>
+#include <time.h> // only for <test>
 #include <stdlib.h>
 #include "calc.h"
 #include "chart_maker.h"
 #define _CRT_SECURE_NO_WARNINGS_
-#define CHART_ARRAY 1024
+#define CHART_ARRAY 2048
 
 #ifdef _WIN32
 	#define PLATFORM "win32"
@@ -19,12 +19,13 @@
 int main(int argc, char **argv)
 {
 	InitWindow(GetScreenWidth(), GetScreenHeight(), "SPECTRON");
-
+	SetExitKey(KEY_ESCAPE);
 	// program set
 		// status for windows & objects
 	int message_status = 0;
 	int import_message = 0;
-	
+	bool save = 0;
+
 		// object visibility
 	float check_width = 20.0;
 	bool gizmo_visibility = false;
@@ -34,7 +35,6 @@ int main(int argc, char **argv)
 	bool grid_visibility = false;
 	bool plot_visibility = false;
 	
-	int save = 0;
 	int panel_state = 0;
 	int radar_combo = 0;
 	int camera_combo = 0;
@@ -118,24 +118,31 @@ int main(int argc, char **argv)
 	// FPS set
 	SetTargetFPS(60);
 
+	// memory for image to plot conversion
 	Image image;
 	Texture2D image2D;
 	// main loop
 	while(!WindowShouldClose())
 	{
+		if(import_message || save || message_status) GuiLock();
+		else GuiUnlock();
+
 		for(int i = 0; i < CHART_ARRAY; ++i)
 		{
-			x_chart[i] = (PLFLT) i/512;
-			y_chart[i] = (PLFLT) rand()/512 ;
+			x_chart[i] = (PLFLT) i;
+			y_chart[i] = (PLFLT) rand() ;
 		}
 
-		// plotting using plplot <test>
+	// plotting using plplot <test>
 		GeneralChart(&x_chart, &y_chart);
 		
+			// image to plot
 		image = LoadImage("general.png");
 		image2D = LoadTextureFromImage(image);
 
 		// key shot cuts check
+			// plot visibility <Ctrl + P>
+		((IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_P))) ? toggle(&plot_visibility) : NULL;	
 			// grid enable/disable  <Ctrl + G>
 		((IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_G))) ? toggle(&grid_visibility) : NULL;
 			// save data <Ctrl + S>
@@ -217,7 +224,7 @@ int main(int argc, char **argv)
 		EndMode3D();
 
 				// plot visibility
-		if(plot_visibility) DrawTextureEx(image2D, (Vector2) {GetScreenWidth() * .01, GetScreenHeight() * .58}, 0.0f, 0.75f, GRAY);
+		if(plot_visibility) DrawTextureEx(image2D, (Vector2) {GetScreenWidth() * .01, GetScreenHeight() * .58}, 0.0f, 0.75f, WHITE);
 
 			// Title Text
 			DrawText("SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics", 10.0f, 10.0f, 10, BLACK); 
@@ -231,10 +238,10 @@ int main(int argc, char **argv)
 			{
 				case 1:
 					GuiWindowBox(PanelBox, "FILE");
-					File(&panel_width, &btn_width, &btn_height, &pad_y, &model, &image, &image2D);
+					File(&panel_width, &btn_width, &btn_height, &pad_y, &model, &image, &image2D, &save, &data_file);
 					break;
 				case 2:
-					GuiPanel(PanelBox, "View");
+					GuiPanel(PanelBox, "VIEW");
 					GuiGroupBox((Rectangle) {(float) GetScreenWidth() - (group_width + panel_width)/2, 50.0, group_width, 60.0}, "Object visibility");
 					// check boxes
 					model_visibility = GuiCheckBox((Rectangle) {(float) GetScreenWidth() - (group_width + panel_width)/2.4, 70.0f, check_width, 20.0f}, "Model", model_visibility);
@@ -245,12 +252,12 @@ int main(int argc, char **argv)
 					grid_visibility = GuiCheckBox((Rectangle) {(float) GetScreenWidth() - (group_width + panel_width)/2.4, 160.0f, check_width, 20.0f}, "Grid", grid_visibility);
 					gizmo_visibility = GuiCheckBox((Rectangle) {(float) GetScreenWidth() - (group_width + panel_width)/3.5, 160.0f, check_width, 20.0f}, "Gizmo", gizmo_visibility);
 
-					GuiGroupBox((Rectangle) {(float) GetScreenWidth() - (group_width + panel_width)/2, 210.0, group_width, 60.0}, "Data visibility");
-					plot_visibility = GuiCheckBox((Rectangle) {(float) GetScreenWidth() - (group_width + panel_width)/3.5, 230.0f, check_width, 20.0f}, "plot", plot_visibility);
+					GuiGroupBox((Rectangle) {(float) GetScreenWidth() - (group_width + panel_width)/2, 230.0, group_width, 60.0}, "Data visibility");
+					plot_visibility = GuiCheckBox((Rectangle) {(float) GetScreenWidth() - (group_width + panel_width)/3.5, 250.0f, check_width, 20.0f}, "plot", plot_visibility);
 
 					break;
 				case 3:
-					GuiPanel(PanelBox, "Tools");
+					GuiPanel(PanelBox, "TOOLS");
 					
 					RadarSet = Radar_Group(&x_radar, &y_radar, &z_radar, &distance_radar, &azymuth_radar, &elevation_radar, &radar_combo, &lambda, &freq, &group_width, &panel_width, &slider_width);
 					CamSet = Camera_Group(&camera.position.x, &camera.position.y, &camera.position.z, &distance_camera, &azymuth_camera, &elevation_camera, &camera_combo, &group_width, &panel_width, &slider_width);
@@ -261,10 +268,11 @@ int main(int argc, char **argv)
 					{
 						toggle(&import_state.windowActive);
 					}
-						if(import_state.windowActive)
-						{
-							DrawRectangle(0.0f, 0.0f, (float) GetScreenWidth(), (float) GetScreenHeight(), Fade(GRAY, 0.8f));
-						}
+
+					if(import_state.windowActive)
+					{
+						DrawRectangle(0.0f, 0.0f, (float) GetScreenWidth(), (float) GetScreenHeight(), Fade(GRAY, 0.8f));
+					}
 					importWindow(&import_state, &model, model_name, name, &import_message);
 					GuiFileDialog(&import_state);
 
@@ -300,10 +308,16 @@ int main(int argc, char **argv)
 
 		
 		EndDrawing();
+	
 		UnloadTexture(image2D);	
 		UnloadImage(image);
 
-	}
+		}
+
+	UnloadTexture(image2D);	
+	UnloadImage(image);
+
+
 	// program cleaning
 	UnloadModel(model);
 	CloseWindow();

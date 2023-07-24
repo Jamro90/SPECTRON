@@ -23,32 +23,27 @@ double min_number(double *array)
 	return min;
 }
 
-void inline PolarChart(PLFLT *x, PLFLT *y)
+void PolarChart(PLFLT *x, PLFLT *y)
 {
-	plenv((PLFLT) min_number(x), (PLFLT) max_number(x), (PLFLT) min_number(y), (PLFLT) max_number(y), 0, 2);
-	plwind((PLFLT) min_number(x), (PLFLT) max_number(x), (PLFLT) min_number(y), (PLFLT) max_number(y));
-	plcol0(4);
+	plenv((PLFLT) min_number(x), (PLFLT) max_number(x), (PLFLT) min_number(y) * 1.1, (PLFLT) max_number(y) * 1.1, 0, 2);
 	pllab("X", "Y", "Polar chart");
-	plcol0(3);
-	plline( 1024, x, y);
-	plflush();
+	plline( sizeof(x), x, y);
 }
 
-void inline LogChart(PLFLT *x, PLFLT *y)
+void LogChart(PLFLT *x, PLFLT *y)
 {
-	plenv(min_number(x), max_number(x), min_number(y), max_number(y), 0, 2);
-	plwind((PLFLT) min_number(x), (PLFLT) max_number(x), (PLFLT) min_number(y), (PLFLT) max_number(y));
-	plcol0(4);
-	pllab("X", "Y", "Polar chart");
-	plcol0(3);
-	plline( 1024, x, y);
-	plflush();	
+	plenv(min_number(x), max_number(x), min_number(y) * 1.1, max_number(y) * 1.1, 0, 2);
+	pllab("X", "Y", "Logaritmic chart");
+	plline( sizeof(x), x, y);
 }
 
 void GeneralChart(PLFLT *x, PLFLT *y)
 {
 	plsdev("png");
 	plsfnam("general.png");
+
+	plscol0a(0, 245, 245, 245, 0.5); // set background color to white (alter default)
+	plscol0(1, 0, 0, 0); // set color nr 1 to black (default)
 
 	PLINT charts = 3;
 	plssub(1, 2);
@@ -58,6 +53,8 @@ void GeneralChart(PLFLT *x, PLFLT *y)
 
 	PolarChart(x, y);
 	LogChart(x, y);
+
+	plflush();
 
 	plend();
 }
