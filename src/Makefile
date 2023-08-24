@@ -1,10 +1,10 @@
 CC=clang
 PROG = spectron
-SRC=main.c gui_maker.c calc.c chart_maker.c
+SRC=main.c gui_maker.c calc.c
 # Objects for Linux
 OBJ=$(SRC:.c=.o)
 # Flags for Linux
-LFLAGS=-s -Wall -std=c99 -ldl -lrt -lm -lraylib -lpthread -lX11
+LFLAGS=-s -Wall -std=c99 -ldl -lrt -lm -lraylib -lpthread -g -static-libgcc 
 WINFLAGS=-I raylib/src -L raylib/src -lraylib -lopengl32 -lgdi32 -lwinmm -static -static-libgcc
 # Declaring rules not target files
 .PHONY: all win32 win64 clear 
@@ -14,7 +14,7 @@ all: $(PROG)
 
 # finale compilation from object files
 $(PROG): $(OBJ)
-	@$(CC) `pkg-config --cflags plplot` -o $@ $^ $(LFLAGS) `pkg-config --libs plplot`
+	@$(CC) -o $@ $^ $(LFLAGS) 
 	@echo "Program Compiled!"
 
 # precompilation for creating objects files
