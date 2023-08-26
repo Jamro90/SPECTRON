@@ -1,4 +1,5 @@
 #include "gui_maker.h"
+#include <math.h>
 #include <stdio.h>
 #include <time.h> // only for <test>
 #include <stdlib.h>
@@ -128,7 +129,7 @@ int main(int argc, char **argv)
 	// memory for image to plot conversion
 	Image image;
 	Texture2D image2D;
-	const char *font_name = "Roboto_font/RobotoMonoNerdProto_Regular.ttf";
+	const char *font_name = "Roboto_font/RobotoMonoNerdFont-Regular.ttf";
 	Font font = LoadFont(font_name);
 
 	// main loop
@@ -161,9 +162,9 @@ int main(int argc, char **argv)
 			exit(0);
 		}
 			// plot visibility <Ctrl + P>
-		((IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_P))) ? toggle(&plot_visibility) : NULL;	
+		((IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_P))) ? plot_visibility = !plot_visibility: NULL;	
 			// grid enable/disable  <Ctrl + G>
-		((IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_G))) ? toggle(&grid_visibility) : NULL;
+		((IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_G))) ? grid_visibility = !grid_visibility : NULL;
 		((IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_I))) ? info_status = !info_status : NULL;
 			// save data <Ctrl + S>
 		(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) ? save = !save : NULL;
@@ -217,8 +218,15 @@ int main(int argc, char **argv)
 			gizmo_y = boundingBox.min.y;
 			gizmo_z = boundingBox.min.z;
 		}
-			if(radar_visibility) DrawSphere((Vector3) {x_radar, y_radar, z_radar}, 1.0, BLUE);		
-
+			if(radar_visibility) 
+			{
+				//DrawSphere((Vector3) {x_radar, y_radar, z_radar}, 1.0, BLUE);	
+				DrawCylinderEx((Vector3){x_radar, y_radar, z_radar}, 
+					       (Vector3){x_radar + 10 * cos(azymuth_radar) * sin(elevation_radar),
+							 y_radar + 10 * cos(elevation_radar) * sin(azymuth_radar),
+							 z_radar + 10 * cos(azymuth_radar) * sin(azymuth_radar)},
+							 0, cylinder_d, segments, DARKBLUE);
+			}
 			// grid draw
 			if(grid_visibility) DrawGrid(grid_count, grid_res);
 
@@ -261,7 +269,7 @@ int main(int argc, char **argv)
 				if(file_status)
 				{
 					GuiWindowBox(PanelBox, "FILE");
-					File(&panel_width, &btn_width, &btn_height, &pad_y, &model, &image, &image2D, &save, &info_status, &data_file);
+					File(&panel_width, &btn_width, &btn_height, &pad_y, &model, &image, &image2D, &save, &info_status, &data_file, &font);
 					break;
 				}
 				else break;
@@ -299,7 +307,7 @@ int main(int argc, char **argv)
 
 					if(import_btn)
 					{
-						toggle(&import_state.windowActive);
+						import_state.windowActive = !import_state.windowActive;
 					}
 
 					if(import_state.windowActive)
@@ -314,23 +322,35 @@ int main(int argc, char **argv)
 				else break;
 
 				case 4:
-					if(HelpButton) message_status = !message_status;
+					if(HelpButton)
+					{
+						file_status = false;
+						view_status = false;
+						tools_status = false;
+						message_status = !message_status;
+					}
 					break;
 			}
 		// Front Buttons
 		if(FileButton) 
 		{
+			view_status = false;
+			tools_status = false;
 			panel_state = 1;
 			file_status = !file_status;
 		}
 		if(ViewButton) 
 		{
+			file_status = false;
+			tools_status = false;
 			panel_state = 2;
 			view_status = !view_status;
 		}
 
 		if(ToolsButton) 
 		{
+			file_status = false;
+			view_status = false;
 			panel_state = 3;
 			tools_status = !tools_status;
 		}
@@ -338,11 +358,11 @@ int main(int argc, char **argv)
 		if(HelpButton) panel_state = 4;
 
 			// save window
-		if(save) saveWindow(&save, data_file);
+		if(save) saveWindow(&save, data_file, &font);
 			// info window
-		if(info_status) infoWindow(&info_status);
+		if(info_status) infoWindow(&info_status, &font);
 			// help window
-		if(message_status) helpWindow(&message_status);
+		if(message_status) helpWindow(&message_status, &font);
 			// invalid model import handler
 		if(import_message) import_error_window(&import_message);
 

@@ -1,10 +1,10 @@
-CC=clang
+CC=gcc
 PROG = spectron
 SRC=main.c gui_maker.c calc.c
 # Objects for Linux
 OBJ=$(SRC:.c=.o)
 # Flags for Linux
-LFLAGS=-s -Wall -std=c99 -ldl -lrt -lm -lraylib -lpthread -g -static-libgcc 
+LFLAGS=-I raylib/src -L raylib/src -s -Wall -std=c99 -ldl -lrt -lm -lraylib -lpthread -g 
 WINFLAGS=-I raylib/src -L raylib/src -lraylib -lopengl32 -lgdi32 -lwinmm -static -static-libgcc
 # Declaring rules not target files
 .PHONY: all win32 win64 clear 

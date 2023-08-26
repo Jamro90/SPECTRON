@@ -31,7 +31,7 @@ void Polar2Cartesian(float *x, float *y, float *z, float *d, float *b, float *e)
 	*z = (*d) * sin((*e) * PI/180);
 }
 
-
+// pre-set camera position
 void Camera_PreSet(Camera3D *camera)
 {
 	camera -> position = (Vector3){0.0f, 0.0f, 10.0f};
@@ -39,10 +39,4 @@ void Camera_PreSet(Camera3D *camera)
 	camera -> up = (Vector3){ 0.0f, 1.0f, 0.0f };
 	camera -> fovy = 0.0f;
 	camera -> projection = CAMERA_PERSPECTIVE;
-}
-
-// change value from true -> false & false -> true
-void toggle(bool *value)
-{
-	*value = !(*value);
 }

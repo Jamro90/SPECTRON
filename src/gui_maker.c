@@ -13,9 +13,12 @@
 #ifdef _WIN32
 	#define PLATFORM "win32"
 #elif _WIN64
+	#include <direct.h>
 	#define PLATFORM "win64"
+	#define MKDIR(x) mkdir(x)
 #elif __linux__
 	#define PLATFORM "linux"
+	#define MKDIR(x) mkdir(x, 0777)
 #endif
 
 #define WIDTH  GetScreenWidth()
@@ -65,7 +68,7 @@ int infoWindow(int *status)
 	return gui;
 }
 // HELP window properities
-int helpWindow(int *message)
+int helpWindow(int *message, Font *font)
 {
 	GuiUnlock();
 	Rectangle window = {(float) WIDTH/4, (float) HEIGHT/4, (float) WIDTH/2, (float) HEIGHT/2};
@@ -73,31 +76,31 @@ int helpWindow(int *message)
 	int gui = GuiMessageBox(window, GuiIconText(ICON_HELP, "HELP"), "SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics", "Ok");
 
 // Text section
-	DrawText("Short cuts keys:", WIDTH/4 + 10, HEIGHT/4 + 40, 20, BLACK);
+	DrawTextEx(*font, "Short cuts keys:", (Vector2){WIDTH/4 + 10, HEIGHT/4 + 40}, 20, 0, BLACK);
 
-	DrawText(TextFormat("\t\tNew Project"), WIDTH/4 + 10, HEIGHT/4 + 70, 20, BLACK);
-	DrawText("<N + Ctrl>", WIDTH/4 + 300, HEIGHT/4 + 70, 20, BLACK);
+	DrawTextEx(*font, TextFormat("\t\tNew Project"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 70}, 20, 0, BLACK);
+	DrawTextEx(*font, "<N + Ctrl>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 70}, 20, 0, BLACK);
 
-	DrawText(TextFormat("\t\tSave data"), WIDTH/4 + 10, HEIGHT/4 + 100, 20, BLACK);
+	DrawTextEx(*font, TextFormat("\t\tSave data"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 100}, 20, 0, BLACK);
 	DrawText("<S + Ctrl>", WIDTH/4 + 300, HEIGHT/4 + 100, 20, BLACK);
 
-	DrawText(TextFormat("\t\tInfo"), WIDTH/4 + 10, HEIGHT/4 + 130, 20, BLACK);
-	DrawText("<I + Ctrl>", WIDTH/4 + 300, HEIGHT/4 + 130, 20, BLACK);
+	DrawTextEx(*font, TextFormat("\t\tInfo"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 130}, 20, 0, BLACK);
+	DrawTextEx(*font, "<I + Ctrl>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 130}, 20, 0, BLACK);
 	
-	DrawText(TextFormat("\t\tExit program"), WIDTH/4 + 10, HEIGHT/4 + 160, 20, BLACK);
-	DrawText("<ESC>", WIDTH/4 + 320, HEIGHT/4 + 160, 20, BLACK);
+	DrawTextEx(*font, TextFormat("\t\tExit program"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 160}, 20, 0, BLACK);
+	DrawTextEx(*font, "<ESC>", (Vector2){WIDTH/4 + 320, HEIGHT/4 + 160}, 20, 0, BLACK);
 	
-	DrawText(TextFormat("\t\tToggle grid"), WIDTH/4 + 10, HEIGHT/4 + 190, 20, BLACK);
-	DrawText("<G + Ctrl>", WIDTH/4 + 300, HEIGHT/4 + 190, 20, BLACK);
+	DrawTextEx(*font, TextFormat("\t\tToggle grid"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 190}, 20, 0, BLACK);
+	DrawTextEx(*font, "<G + Ctrl>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 190}, 20, 0, BLACK);
 
-	DrawText(TextFormat("\t\tShow help"), WIDTH/4 + 10, HEIGHT/4 + 220, 20, BLACK);
-	DrawText("<H + Ctrl>", WIDTH/4 + 300, HEIGHT/4 + 220, 20, BLACK);
+	DrawTextEx(*font, TextFormat("\t\tShow help"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 220}, 20, 0, BLACK);
+	DrawTextEx(*font, "<H + Ctrl>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 220}, 20, 0, BLACK);
 
-	DrawText(TextFormat("\t\tImport model"), WIDTH/4 + 10, HEIGHT/4 + 250, 20, BLACK);
-	DrawText("<P + Ctrl>", WIDTH/4 + 300, HEIGHT/4 + 250, 20, BLACK);
+	DrawTextEx(*font, TextFormat("\t\tImport model"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 250}, 20, 0, BLACK);
+	DrawTextEx(*font, "<P + Ctrl>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 250}, 20, 0, BLACK);
 
-	DrawText(TextFormat("\t\tToggle camera mode"), WIDTH/4 + 10, HEIGHT/4 + 280, 20, BLACK);
-	DrawText("<Y + Ctrl>", WIDTH/4 + 300, HEIGHT/4 + 280, 20, BLACK);
+	DrawTextEx(*font, TextFormat("\t\tToggle camera mode"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 280}, 20, 0, BLACK);
+	DrawTextEx(*font, "<Y + Ctrl>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 280}, 20, 0, BLACK);
 
 	if((gui == 0) || (gui == 1)) *message = 0;
 	GuiLock();
@@ -105,7 +108,7 @@ int helpWindow(int *message)
 }
 
 // SAVE window properties
-int saveWindow(bool *state, char *INPUT)
+int saveWindow(bool *state, char *INPUT, Font *font)
 {
 	GuiUnlock();
 	DrawRectangle(0, 0, WIDTH, HEIGHT, Fade(RAYWHITE, 0.8f));
@@ -117,7 +120,8 @@ int saveWindow(bool *state, char *INPUT)
 
 		if(!strcmp("linux", PLATFORM))
 		{
-			mkdir(INPUT, 0777);
+			//mkdir(INPUT, 0777);
+			MKDIR(INPUT);
 			char file_name[1024];
 			sprintf(file_name, "%s/%s.txt", INPUT, INPUT);
 			FILE *file = fopen(file_name, "w");
@@ -126,7 +130,7 @@ int saveWindow(bool *state, char *INPUT)
 		}
 		else if(!(strcmp("win32", PLATFORM) || strcmp("win64", PLATFORM)))
 		{
-			mkdir(INPUT, 0777);
+			MKDIR(INPUT);
 		}
 		else exit(1);
 
@@ -145,7 +149,7 @@ int saveWindow(bool *state, char *INPUT)
 }
 
 // File panel
-void File(float *panel_width, float *btn_width, float *btn_height, int *pad_y, Model *model, Image *image, Texture2D *image2D, bool *status, int *info_status, char *INPUT)
+void File(float *panel_width, float *btn_width, float *btn_height, int *pad_y, Model *model, Image *image, Texture2D *image2D, bool *status, int *info_status, char *INPUT, Font *font)
 {
 	
 	int NewButton = GuiButton((Rectangle) {(float) WIDTH - (*panel_width + *btn_width)/2, *pad_y, *btn_width, *btn_height}, GuiIconText(ICON_FILE_NEW, "[N]ew Project"));
@@ -155,7 +159,7 @@ void File(float *panel_width, float *btn_width, float *btn_height, int *pad_y, M
 	if(SaveButton)
 	{
 		*status = true;
-		saveWindow(status, INPUT);
+		saveWindow(status, INPUT, font);
 	}
 
 	int InfoButton = GuiButton((Rectangle) {(float) WIDTH - (*panel_width + *btn_width)/2, (*pad_y)*3, *btn_width, *btn_height}, GuiIconText(ICON_INFO, "[I]nfo"));
