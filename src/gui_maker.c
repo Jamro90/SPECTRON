@@ -175,16 +175,16 @@ int saveWindow(bool *state, char *INPUT, Font *font)
 }
 
 // File panel
-void File(float *panel_width, float *btn_width, float *btn_height, int *pad_y, Model *model, Image *image, Texture2D *image2D, int *new_status, int *info_status, bool *status, char *INPUT, Font *font)
+void File(Geometry *geometry, Model *model, Image *image, Texture2D *image2D, Signals *sig, char *INPUT, Font *font)
 {
 	
-	int NewButton = GuiButton((Rectangle) {(float) WIDTH - (*panel_width + *btn_width)/2, *pad_y, *btn_width, *btn_height}, GuiIconText(ICON_FILE_NEW, "[N]ew Project"));
+	int NewButton = GuiButton((Rectangle) {(float) WIDTH - (geometry->panel_width + geometry->btn_width)/2, geometry->pad_y, geometry->btn_width, geometry->btn_height}, GuiIconText(ICON_FILE_NEW, "[N]ew Project"));
 	
 	switch(NewButton)
 	{
 		// with saved prompt
 		case 1:
-			newForSave(new_status, status, INPUT, font);
+			newForSave(&sig->new_status, &sig->save, INPUT, font);
 		// just make new	
 		case 2:
 			UnloadModel(*model);
@@ -193,19 +193,19 @@ void File(float *panel_width, float *btn_width, float *btn_height, int *pad_y, M
 			break;
 	}
 
-	int SaveButton = GuiButton((Rectangle) {(float) WIDTH - (*panel_width + *btn_width)/2, (*pad_y)*2, *btn_width, *btn_height}, GuiIconText(ICON_FILE_SAVE, "[S]ave Data"));
+	int SaveButton = GuiButton((Rectangle) {(float) WIDTH - (geometry->panel_width + geometry->btn_width)/2, (geometry->pad_y)*2, geometry->btn_width, geometry->btn_height}, GuiIconText(ICON_FILE_SAVE, "[S]ave Data"));
 	
 	if(SaveButton)
 	{
-		*status = true;
-		saveWindow(status, INPUT, font);
+		sig->save = true;
+		saveWindow(&sig->save, INPUT, font);
 	}
 
-	int InfoButton = GuiButton((Rectangle) {(float) WIDTH - (*panel_width + *btn_width)/2, (*pad_y)*3, *btn_width, *btn_height}, GuiIconText(ICON_INFO, "[I]nfo"));
+	int InfoButton = GuiButton((Rectangle) {(float) WIDTH - (geometry->panel_width + geometry->btn_width)/2, (geometry->pad_y)*3, geometry->btn_width, geometry->btn_height}, GuiIconText(ICON_INFO, "[I]nfo"));
 
-	if(InfoButton) infoWindow(info_status);
+	if(InfoButton) infoWindow(&sig->info_status);
 
-	int ExitButton = GuiButton((Rectangle) {(float) WIDTH - (*panel_width + *btn_width)/2, (*pad_y)*4, *btn_width, *btn_height}, GuiIconText(ICON_EXIT, "Exit [ESC]"));
+	int ExitButton = GuiButton((Rectangle) {(float) WIDTH - (geometry->panel_width + geometry->btn_width)/2, (geometry->pad_y)*4, geometry->btn_width, geometry->btn_height}, GuiIconText(ICON_EXIT, "Exit [ESC]"));
 	
 	if(ExitButton)
 	{
@@ -219,110 +219,110 @@ void File(float *panel_width, float *btn_width, float *btn_height, int *pad_y, M
 
 }
 // Tools panel
-int Radar_Group(float *x_radar, float *y_radar, float *z_radar, float *distance_radar, float *azymuth_radar, float *elevation_radar, int *radar_combo, float *lambda, float *freq, float *group_width, float *panel_width, float *slider_width)
+int Radar_Group(Radar *radar, Geometry *geometry)
 {
 	int CamSet = 0;
 		// Radar Group
-	GuiGroupBox((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2, 50.0, *group_width, 260.0}, "Radar Settings");
+	GuiGroupBox((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2, 50.0, geometry->group_width, 260.0}, "Radar Settings");
 
-	GuiLabel((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.5, 70.0, *group_width, 20.0}, "Radar Position");
+	GuiLabel((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.5, 70.0, geometry->group_width, 20.0}, "Radar Position");
 
-	*radar_combo = GuiComboBox((Rectangle){(float) WIDTH - (*group_width + *panel_width)/4, 65.0, *group_width/2.5, 20.0}, "Cartesian;Polar", *radar_combo);
+	radar->combo = GuiComboBox((Rectangle){(float) WIDTH - (geometry->group_width + geometry->panel_width)/4, 65.0, geometry->group_width/2.5, 20.0}, "Cartesian;Polar", radar->combo);
 	
-	if (*radar_combo == 0)
+	if (radar->combo == 0)
 	{
 			// coordinats 
-		Cartesian2Polar(x_radar, y_radar, z_radar, distance_radar, azymuth_radar, elevation_radar);
+//		Cartesian2Polar(radar->x, radar->y, radar->z, radar->distance, radar->azymuth, radar->elevation);
 	
-		*x_radar = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 95.0, *slider_width, 20.0}, "X: ", TextFormat("%.2f m", *x_radar), *x_radar, -100, 100);
+		radar->x = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 95.0, geometry->slider_width, 20.0}, "X: ", TextFormat("%.2f m", radar->x), radar->x, -100, 100);
 		
-		*y_radar = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 135.0, *slider_width, 20.0}, "Y: ", TextFormat("%.2f m", *y_radar), *y_radar, -100, 100);
+		radar->y = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 135.0, geometry->slider_width, 20.0}, "Y: ", TextFormat("%.2f m", radar->y), radar->y, -100, 100);
 			
-	 	*z_radar = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 175.0, *slider_width, 20.0}, "Z: ", TextFormat("%.2f m", *z_radar), *z_radar, -100, 100);
+	 	radar->z = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 175.0, geometry->slider_width, 20.0}, "Z: ", TextFormat("%.2f m", radar->z), radar->z, -100, 100);
 	
 		GuiSetState(STATE_DISABLED);
-		CamSet = GuiButton((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/6.6, 215.0f, 80.0f, 20.0f}, "CamSet");
+		CamSet = GuiButton((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/6.6, 215.0f, 80.0f, 20.0f}, "CamSet");
 		GuiSetState(STATE_NORMAL);
 
 	}
-	else if (*radar_combo == 1)
+	else if (radar->combo == 1)
 	{
 			// coordinats 
-		Polar2Cartesian(x_radar, y_radar, z_radar, distance_radar, azymuth_radar, elevation_radar);
+//		Polar2Cartesian(radar->x, radar->y, radar->z, radar->distance, radar->azymuth, radar->elevation);
 		
-		*distance_radar = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 95.0, *slider_width, 20.0}, "Distance", TextFormat("%.2f m", *distance_radar), *distance_radar, 0, 100);
+		radar->distance = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 95.0, geometry->slider_width, 20.0}, "Distance", TextFormat("%.2f m", radar->distance), radar->distance, 0, 100);
 		
-		*azymuth_radar = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 135.0, *slider_width, 20.0}, "Azymuth", TextFormat("%.2f %s", *azymuth_radar, "\u00B0"), *azymuth_radar, 0, 360);
+		radar->azymuth = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 135.0, geometry->slider_width, 20.0}, "Azymuth", TextFormat("%.2f %s", radar->azymuth, "\u00B0"), radar->azymuth, 0, 360);
 			
-		*elevation_radar = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 175.0, *slider_width, 20.0}, "Elevation", TextFormat("%.2f %s", *elevation_radar, "\u00B0"), *elevation_radar, -90, 90);
+		radar->elevation = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 175.0, geometry->slider_width, 20.0}, "Elevation", TextFormat("%.2f %s", radar->elevation, "\u00B0"), radar->elevation, -90, 90);
 		
-		CamSet = GuiButton((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/6.6, 215.0f, 80.0f, 20.0f}, "CamSet");
+		CamSet = GuiButton((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/6.6, 215.0f, 80.0f, 20.0f}, "CamSet");
 		}
 
 
-	GuiLabel((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.5, 215.0, *group_width, 20.0}, "Radar Params");
+	GuiLabel((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.5, 215.0, geometry->group_width, 20.0}, "Radar Params");
 	
-	*freq = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 240.0, *slider_width, 20.0}, "Frequency", TextFormat("%.2f", *freq), *freq, 1, 999.99);
+	radar->freq = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 240.0, geometry->slider_width, 20.0}, "Frequency", TextFormat("%.2f", radar->freq), radar->freq, 1, 999.99);
 
-	*lambda = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 280.0, *slider_width, 20.0}, "Lambda", TextFormat("%.2f", *lambda), *lambda, 1, 999.99);
+	radar->lambda = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 280.0, geometry->slider_width, 20.0}, "Lambda", TextFormat("%.2f", radar->lambda), radar->lambda, 1, 999.99);
 
 	return CamSet;
 }
 
-int Camera_Group(float *x_camera, float *y_camera, float *z_camera, float *distance_camera, float *azymuth_camera, float *elevation_camera, int *camera_combo, float *group_width, float *panel_width, float *slider_width)
+int Camera_Group(Cam *cam, Geometry *geometry)
 {
 	int RadarSet = 0;
 	// Camera Group	
-	GuiGroupBox((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2, 340.0, *group_width, 220.0}, "Camera Settings");
+	GuiGroupBox((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2, 340.0, geometry->group_width, 220.0}, "Camera Settings");
 
-	GuiLabel((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.5, 360.0, *group_width, 20.0}, "Camera Position");
+	GuiLabel((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.5, 360.0, geometry->group_width, 20.0}, "Camera Position");
 	
-	*camera_combo = GuiComboBox((Rectangle){(float) WIDTH - (*group_width + *panel_width)/4, 355.0, *group_width/2.5, 20.0}, "Cartesian;Polar", *camera_combo);
+	cam->combo = GuiComboBox((Rectangle){(float) WIDTH - (geometry->group_width + geometry->panel_width)/4, 355.0, geometry->group_width/2.5, 20.0}, "Cartesian;Polar", cam->combo);
 	
-	if(*camera_combo == 0)
+	if(cam->combo == 0)
 	{
-		Cartesian2Polar(x_camera, y_camera, z_camera, distance_camera, azymuth_camera, elevation_camera);
+//		Cartesian2Polar(cam->z, cam->y, cam->z, cam->distance, cam->azymuth, cam->elevation);
 
-		*x_camera = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 400.0, *slider_width, 20.0}, "X: ", TextFormat("%.2f m", *x_camera), *x_camera, -100, 100);
+		cam->x = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 400.0, geometry->slider_width, 20.0}, "X: ", TextFormat("%.2f m", cam->x), cam->x, -100, 100);
 		
-		*y_camera = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 440.0, *slider_width, 20.0}, "Y: ", TextFormat("%.2f m", *y_camera), *y_camera, -100, 100);
+		cam->y = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 440.0, geometry->slider_width, 20.0}, "Y: ", TextFormat("%.2f m", cam->y), cam->y, -100, 100);
 			
-		*z_camera = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 480.0, *slider_width, 20.0}, "Z: ", TextFormat("%.2f m", *z_camera), *z_camera, -100, 100);
+		cam->z = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 480.0, geometry->slider_width, 20.0}, "Z: ", TextFormat("%.2f m", cam->z), cam->z, -100, 100);
 	
 		GuiSetState(STATE_DISABLED);
-		RadarSet = GuiButton((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/6.6, 520.0f, 80.0f, 20.0f}, "RadarSet");
+		RadarSet = GuiButton((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/6.6, 520.0f, 80.0f, 20.0f}, "RadarSet");
 		GuiSetState(STATE_NORMAL);
 	}
-	else if(*camera_combo == 1)
+	else if(cam->combo == 1)
 	{
-		Polar2Cartesian(x_camera, y_camera, z_camera, distance_camera, azymuth_camera, elevation_camera);
+//		Polar2Cartesian(cam->x, cam->y, cam->z, cam->distance, cam->azymuth, cam->elevation);
 
-		*distance_camera = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 400.0, *slider_width, 20.0}, "Distance", TextFormat("%.2f m", *distance_camera), *distance_camera, 0, 100);
+		cam->distance = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 400.0, geometry->slider_width, 20.0}, "Distance", TextFormat("%.2f m", cam->distance), cam->distance, 0, 100);
 		
-		*azymuth_camera = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 440.0, *slider_width, 20.0}, "Azymuth", TextFormat("%.2f %s", *azymuth_camera, "\u00B0"), *azymuth_camera, 0, 360);
+		cam->azymuth = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 440.0, geometry->slider_width, 20.0}, "Azymuth", TextFormat("%.2f %s", cam->azymuth, "\u00B0"), cam->azymuth, 0, 360);
 			
-		*elevation_camera = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 480.0, *slider_width, 20.0}, "Elevation", TextFormat("%.2f %s", *elevation_camera, "\u00B0"), *elevation_camera, -90, 90);
+		cam->elevation = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 480.0, geometry->slider_width, 20.0}, "Elevation", TextFormat("%.2f %s", cam->elevation, "\u00B0"), cam->elevation, -90, 90);
 	
-		RadarSet = GuiButton((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/6.6, 520.0f, 80.0f, 20.0f}, "RadarSet");
+		RadarSet = GuiButton((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/6.6, 520.0f, 80.0f, 20.0f}, "RadarSet");
 	}
 
 
 	return RadarSet;
 }
 
-void Object_Group(bool *import_btn, int *material_combo, float *group_width, float *panel_width, float *slider_width, char *name, float *model_scale)
+void Object_Group(bool *import_btn, int *material_combo, Geometry *geometry, char *name, float *model_scale)
 {
 			// Object Group
-	GuiGroupBox((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2, 580.0, *group_width, 140.0}, "Object Settings");
+	GuiGroupBox((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2, 580.0, geometry->group_width, 140.0}, "Object Settings");
 		
-	GuiLabel((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.2, 600.0, *group_width/2, 20.0}, name);
+	GuiLabel((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.2, 600.0, geometry->group_width/2, 20.0}, name);
 
-	*import_btn = GuiButton((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/3.5, 600.0, *group_width/2, 20.0}, "Import");
+	*import_btn = GuiButton((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/3.5, 600.0, geometry->group_width/2, 20.0}, "Import");
 	
-	GuiLabel((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.5, 640.0, *group_width, 20.0}, "Material");
+	GuiLabel((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.5, 640.0, geometry->group_width, 20.0}, "Material");
 
-	*material_combo = GuiComboBox((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/3.5, 640.0, *group_width/2, 20.0}, "PEC;Al;Cu", *material_combo);
+	*material_combo = GuiComboBox((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/3.5, 640.0, geometry->group_width/2, 20.0}, "PEC;Al;Cu", *material_combo);
 
-	*model_scale = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 680.0, *slider_width, 20.0}, "Scale", TextFormat("%.2f", *model_scale), *model_scale, 0.1, 1);
+	*model_scale = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 680.0, geometry->slider_width, 20.0}, "Scale", TextFormat("%.2f", *model_scale), *model_scale, 0.1, 1);
 }
 

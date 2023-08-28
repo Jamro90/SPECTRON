@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <time.h> // only for <test>
 #include <stdlib.h>
-//#include "chart_maker.h"
 
 #define _CRT_SECURE_NO_WARNINGS_
 #define CHART_ARRAY 2048
@@ -26,11 +25,12 @@ int main(int argc, char **argv)
 	InitWindow(WIDTH, HEIGHT, "SPECTRON");
 	// program set
 		// status for windows & objects
-	int message_status = 0;
-	int new_status = 0;
-	int info_status = 0;
-	int import_message = 0;
-	bool save = 0;
+	Signals sig;
+	sig.import_message = 0;
+	sig.save = 0;
+	sig.message_status = 0 ;
+	sig.info_status = 0;
+	sig.new_status = 0;
 
 	bool file_status = false;
 	bool view_status = false;
@@ -46,48 +46,51 @@ int main(int argc, char **argv)
 	bool plot_visibility = false;
 	
 	int panel_state = 0;
-	int radar_combo = 0;
-	int camera_combo = 0;
 	int material_combo = 0;
 	int CamSet = 0;
 	int RadarSet = 0;
 
 	// widgets parameters
-	float btn_width = 170.0f;
-	float btn_height = 50.0f;
-	float panel_width = WIDTH * 0.2;
-	float group_width = WIDTH * 0.18;
-	float slider_width = WIDTH * 0.1;
-	int pad_y = btn_height + 10;
+	Geometry geo;
+	geo.panel_width = WIDTH * 0.2;
+	geo.btn_width = 170.0f;
+	geo.btn_height = 50.0f;
+	geo.pad_y = geo.btn_height + 10;
+	geo.group_width = WIDTH * 0.18;
+	geo.slider_width = WIDTH * 0.1;
 
 	// widgets preprogram
-	Rectangle PanelBox = {(float) WIDTH - panel_width, 0.0f, (float) WIDTH - 10, (float) HEIGHT};
-	Rectangle FileBox = {20.0f, check_width, btn_width, btn_height};
-	Rectangle ViewBox = {200.0f, check_width, btn_width, btn_height};
-	Rectangle ToolsBox = {380.0f, check_width, btn_width, btn_height};
-	Rectangle HelpBox = {560.0f, check_width, btn_width, btn_height};
+	Rectangle PanelBox = {(float) WIDTH - geo.panel_width, 0.0f, (float) WIDTH - 10, (float) HEIGHT};
+	Rectangle FileBox = {20.0f, check_width, geo.btn_width, geo.btn_height};
+	Rectangle ViewBox = {200.0f, check_width, geo.btn_width, geo.btn_height};
+	Rectangle ToolsBox = {380.0f, check_width, geo.btn_width, geo.btn_height};
+	Rectangle HelpBox = {560.0f, check_width, geo.btn_width, geo.btn_height};
 		// variables for computing cordinates
 		// radar
-	float x_radar = 1.0;
-	float y_radar = 2.0;
-	float z_radar = 2.0;
-	float distance_radar = 1;
-	float azymuth_radar = 0.0f;
-	float elevation_radar = 0.0f;
-	float freq = 1.0f;
-	float lambda = 1.0f;
+	Radar radar;
+	radar.x = 1.0;
+	radar.y = 2.0;
+	radar.z = 2.0;
+	radar.distance = 1;
+	radar.azymuth = 0.0f;
+	radar.elevation = 0.0f;
+	radar.combo = 0;
+	radar.lambda = 1.0f;
+	radar.freq = 1.0f;
 		// camera
-	float x_camera = 0;
-	float y_camera = -5;
-	float z_camera = 5;
-	float distance_camera = 100;
-	float azymuth_camera = 100;
-	float elevation_camera = 100;
+	Cam cam;
+	cam.x = 0;
+	cam.y = -5;
+	cam.z = 5;
+	cam.distance = 100;
+	cam.azymuth = 100;
+	cam.elevation = 100;
+	cam.combo = 0;
 
 	// Camera 3D PreSetting
 	int cam_mode = CAMERA_THIRD_PERSON;
 	Camera3D camera = {0};
-	camera.position = (Vector3){x_camera, y_camera, z_camera};
+	camera.position = (Vector3){cam.x, cam.y, cam.z};
 	camera.target = (Vector3){0.0f, 0.0f, 0.0f};	
 	camera.up = (Vector3){ 0.0f, 0.0f, 1.0f };
 	camera.fovy = 45.0f;
@@ -133,7 +136,7 @@ int main(int argc, char **argv)
 	// main loop
 	while(!WindowShouldClose())
 	{
-		if(import_message || save || message_status || info_status || new_status) GuiLock();
+		if(sig.import_message || sig.save || sig.message_status || sig.info_status || sig.new_status) GuiLock();
 		else GuiUnlock();
 			// image to plot
 	//	image = LoadImage("general.png");
@@ -147,6 +150,7 @@ int main(int argc, char **argv)
 			UnloadModel(model);
 			UnloadImage(image);
 			UnloadTexture(image2D);	
+			UnloadFont(font);
 			exit(0);
 		}
 			// plot visibility <Ctrl + P>
@@ -154,32 +158,32 @@ int main(int argc, char **argv)
 			// grid enable/disable  <Ctrl + G>
 		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_G)) grid_visibility = !grid_visibility;
 			// info window enable/disable <Ctrl + I>
-		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_I)) info_status = !info_status;
+		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_I)) sig.info_status = !sig.info_status;
 			// save data <Ctrl + S>
-		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) save = !save;
+		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) sig.save = !sig.save;
 			// help <Ctrl + H>
-		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_H)) message_status = !message_status;
+		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_H)) sig.message_status = !sig.message_status;
 
 		// camera position/mode update
 		if((IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) || (GetMouseWheelMove() != 0)) 
 		{
 			UpdateCamera(&camera, cam_mode);
 			camera.target = (Vector3){0.0f, 0.0f, 0.0f};	
-			x_camera = camera.position.x;
-			y_camera = camera.position.y;
-			z_camera = camera.position.z;
+			cam.x = camera.position.x;
+			cam.y = camera.position.y;
+			cam.z = camera.position.z;
 
-			Cartesian2Polar(&x_camera, &y_camera, &z_camera, &distance_camera, &azymuth_camera, &elevation_camera);
-			Polar2Cartesian(&x_camera, &y_camera, &z_camera, &distance_camera, &azymuth_camera, &elevation_camera);
+			Cartesian2Polar(&cam.x, &cam.y, &cam.z, &cam.distance, &cam.azymuth, &cam.elevation);
+			Polar2Cartesian(&cam.x, &cam.y, &cam.z, &cam.distance, &cam.azymuth, &cam.elevation);
 		}
 		else
 		{
 			camera.target = (Vector3){0.0f, 0.0f, 0.0f};	
-			x_camera = camera.position.x;
-			y_camera = camera.position.y;
-			z_camera = camera.position.z;
-			Polar2Cartesian(&x_camera, &y_camera, &z_camera, &distance_camera, &azymuth_camera, &elevation_camera);
-			Cartesian2Polar(&x_camera, &y_camera, &z_camera, &distance_camera, &azymuth_camera, &elevation_camera);
+			cam.x = camera.position.x;
+			cam.y = camera.position.y;
+			cam.z = camera.position.z;
+			Polar2Cartesian(&cam.x, &cam.y, &cam.z, &cam.distance, &cam.azymuth, &cam.elevation);
+			Cartesian2Polar(&cam.x, &cam.y, &cam.z, &cam.distance, &cam.azymuth, &cam.elevation);
 		}
 
 		// drawing objects
@@ -209,12 +213,13 @@ int main(int argc, char **argv)
 		}
 			if(radar_visibility) 
 			{
-				//DrawSphere((Vector3) {x_radar, y_radar, z_radar}, 1.0, BLUE);	
-				DrawCylinderEx((Vector3){x_radar, y_radar, z_radar}, 
-					       (Vector3){x_radar + 10 * cos(azymuth_radar) * sin(elevation_radar),
-							 y_radar + 10 * cos(elevation_radar) * sin(azymuth_radar),
-							 z_radar + 10 * cos(azymuth_radar) * sin(azymuth_radar)},
+				//DrawSphere((Vector3) {x, y, z}, 1.0, BLUE);	
+		/*		DrawCylinderEx((Vector3){radar.x, radar.y, radar.z}, 
+					       (Vector3){radar.x + 10 * cos(radar.azymuth) * sin(radar.elevation),
+							 radar.y + 10 * cos(radar.elevation) * sin(radar.azymuth),
+							 radar.z + 10 * cos(radar.azymuth) * sin(radar.azymuth)},
 							 0, cylinder_d, segments, DARKBLUE);
+			*/
 			}
 			// grid draw
 			if(grid_visibility) DrawGrid(grid_count, grid_res);
@@ -258,7 +263,7 @@ int main(int argc, char **argv)
 				if(file_status)
 				{
 					GuiWindowBox(PanelBox, "FILE");
-					File(&panel_width, &btn_width, &btn_height, &pad_y, &model, &image, &image2D, &new_status, &info_status, &save, data_file, &font);
+					File(&geo, &model, &image, &image2D, &sig, data_file, &font);
 					break;
 				}
 				else break;
@@ -267,18 +272,18 @@ int main(int argc, char **argv)
 				if(view_status)
 				{
 					GuiPanel(PanelBox, "VIEW");
-					GuiGroupBox((Rectangle) {(float) WIDTH - (group_width + panel_width)/2, 50.0, group_width, 60.0}, "Object visibility");
+					GuiGroupBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/2, 50.0, geo.group_width, 60.0}, "Object visibility");
 					// check boxes
-					model_visibility = GuiCheckBox((Rectangle) {(float) WIDTH - (group_width + panel_width)/2.4, 70.0f, check_width, 20.0f}, "Model", model_visibility);
-					box_visibility = GuiCheckBox((Rectangle) {(float) WIDTH - (group_width + panel_width)/3.5, 70.0f, check_width, 20.0f}, "Box", box_visibility);
-					radar_visibility = GuiCheckBox((Rectangle) {(float) WIDTH - (group_width + panel_width)/6.6, 70.0f, check_width, 20.0f}, "Radar", radar_visibility);
+					model_visibility = GuiCheckBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/2.4, 70.0f, check_width, 20.0f}, "Model", model_visibility);
+					box_visibility = GuiCheckBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/3.5, 70.0f, check_width, 20.0f}, "Box", box_visibility);
+					radar_visibility = GuiCheckBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/6.6, 70.0f, check_width, 20.0f}, "Radar", radar_visibility);
 
-					GuiGroupBox((Rectangle) {(float) WIDTH - (group_width + panel_width)/2, 140.0, group_width, 60.0}, "Sceen visibility");
-					grid_visibility = GuiCheckBox((Rectangle) {(float) WIDTH - (group_width + panel_width)/2.4, 160.0f, check_width, 20.0f}, "Grid", grid_visibility);
-					gizmo_visibility = GuiCheckBox((Rectangle) {(float) WIDTH - (group_width + panel_width)/3.5, 160.0f, check_width, 20.0f}, "Gizmo", gizmo_visibility);
+					GuiGroupBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/2, 140.0, geo.group_width, 60.0}, "Sceen visibility");
+					grid_visibility = GuiCheckBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/2.4, 160.0f, check_width, 20.0f}, "Grid", grid_visibility);
+					gizmo_visibility = GuiCheckBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/3.5, 160.0f, check_width, 20.0f}, "Gizmo", gizmo_visibility);
 
-					GuiGroupBox((Rectangle) {(float) WIDTH - (group_width + panel_width)/2, 230.0, group_width, 60.0}, "Data visibility");
-					plot_visibility = GuiCheckBox((Rectangle) {(float) WIDTH - (group_width + panel_width)/3.5, 250.0f, check_width, 20.0f}, "plot", plot_visibility);
+					GuiGroupBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/2, 230.0, geo.group_width, 60.0}, "Data visibility");
+					plot_visibility = GuiCheckBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/3.5, 250.0f, check_width, 20.0f}, "plot", plot_visibility);
 
 					break;
 				}
@@ -289,10 +294,11 @@ int main(int argc, char **argv)
 				{
 					GuiPanel(PanelBox, "TOOLS");
 					
-					RadarSet = Radar_Group(&x_radar, &y_radar, &z_radar, &distance_radar, &azymuth_radar, &elevation_radar, &radar_combo, &lambda, &freq, &group_width, &panel_width, &slider_width);
-					CamSet = Camera_Group(&camera.position.x, &camera.position.y, &camera.position.z, &distance_camera, &azymuth_camera, &elevation_camera, &camera_combo, &group_width, &panel_width, &slider_width);
+					RadarSet = Radar_Group(&radar, &geo);
+			    
+					CamSet = Camera_Group(&cam, &geo);
 					
-					Object_Group(&import_btn, &material_combo, &group_width, &panel_width, &slider_width, name, &model_scale);
+					Object_Group(&import_btn, &material_combo, &geo, name, &model_scale);
 
 					if(import_btn)
 					{
@@ -303,7 +309,7 @@ int main(int argc, char **argv)
 					{
 						DrawRectangle(0.0f, 0.0f, (float) WIDTH, (float) HEIGHT, Fade(GRAY, 0.8f));
 					}
-					importWindow(&import_state, &model, model_name, name, &import_message);
+					importWindow(&import_state, &model, model_name, name, &sig.import_message);
 					GuiFileDialog(&import_state);
 
 					break;
@@ -316,7 +322,7 @@ int main(int argc, char **argv)
 						file_status = false;
 						view_status = false;
 						tools_status = false;
-						message_status = !message_status;
+						sig.message_status = !sig.message_status;
 					}
 					break;
 			}
@@ -346,26 +352,26 @@ int main(int argc, char **argv)
 
 		if(HelpButton) panel_state = 4;
 
-		if(new_status) newForSave(&new_status, &save, data_file, &font);
+		if(sig.new_status) newForSave(&sig.new_status, &sig.save, data_file, &font);
 			// save window
-		if(save) saveWindow(&save, data_file, &font);
+		if(sig.save) saveWindow(&sig.save, data_file, &font);
 			// info window
-		if(info_status) infoWindow(&info_status);
+		if(sig.info_status) infoWindow(&sig.info_status);
 			// help window
-		if(message_status) helpWindow(&message_status, &font);
+		if(sig.message_status) helpWindow(&sig.message_status, &font);
 			// invalid model import handler
-		if(import_message) import_error_window(&import_message);
+		if(sig.import_message) import_error_window(&sig.import_message);
 
 		// Radar & Camera polar setting
 		if(RadarSet)
 		{
-			azymuth_radar = azymuth_camera;
-			elevation_radar = elevation_camera;
+			radar.azymuth = cam.azymuth;
+			radar.elevation = cam.elevation;
 		}
 		if(CamSet)
 		{
-			azymuth_camera = azymuth_radar;
-			elevation_camera = elevation_radar;
+			cam.azymuth = radar.azymuth;
+			cam.elevation = radar.elevation;
 		}
 
 		

@@ -4,7 +4,7 @@ SRC=main.c gui_maker.c calc.c
 # Objects for Linux
 OBJ=$(SRC:.c=.o)
 # Flags for Linux
-LFLAGS=-I raylib/src -L raylib/src -Wall -std=c99 -ldl -lrt -lraylib -lpthread -g -lm -static-libgcc
+LFLAGS=-I raylib/src -L raylib/src -Wall -std=c99 -ldl -lrt -lraylib -lpthread -g -lm
 WINFLAGS32=-I raylib/src_win32 -L raylib/src_win32 -lraylib -lopengl32 -lgdi32 -lwinmm -static -static-libgcc
 WINFLAGS64=-I raylib/src_win64 -L raylib/src_win64 -lraylib -lopengl32 -lgdi32 -lwinmm -static -static-libgcc
 # Declaring rules not target files

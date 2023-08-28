@@ -47,14 +47,14 @@ int main(void)
 			}
 		}
 
-		//plot(x, y, WIDTH, HEIGHT);
-		
+		plot(x, y, WIDTH, HEIGHT);
+	/*	
 		for(size_t i = 0; i < y_max/10; ++i)
 		{
 			DrawCircle(WIDTH/2, HEIGHT/2, y_max*i/100, BLACK);
 			DrawCircle(WIDTH/2, HEIGHT/2, y_max*i/100 - 10, GRAY);
 		}
-
+*/
 		EndDrawing();
 	}
 }
