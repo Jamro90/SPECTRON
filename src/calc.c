@@ -1,5 +1,7 @@
 #include <stdbool.h>
-#include <raylib.h>
+
+#include "raylib/src/raylib.h"
+
 #include <stdio.h>
 #include <math.h>
 

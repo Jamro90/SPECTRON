@@ -1,17 +1,20 @@
 #include "gui_maker.h"
-#include <raylib.h>
-#define RAYGUI_IMPLEMENTATION
-#include "raygui/src/raygui.h"
-#undef RAYGUI_IMPLEMENTATION
-#define GUI_FILE_DIALOG_IMPLEMENTATION
-#include "raygui/gui_file_dialog.h"
 #include <stdbool.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
 
+#include "raylib/src/raylib.h" 
+#define RAYGUI_IMPLEMENTATION
+#include "raygui/src/raygui.h"
+#undef RAYGUI_IMPLEMENTATION
+#define GUI_FILE_DIALOG_IMPLEMENTATION
+#include "raygui/gui_file_dialog.h"
+
 #ifdef _WIN32
+	#include <direct.h>
 	#define PLATFORM "win32"
+	#define MKDIR(x) mkdir(x)
 #elif _WIN64
 	#include <direct.h>
 	#define PLATFORM "win64"
@@ -54,6 +57,30 @@ void importWindow(GuiFileDialogState *import_state, Model *model, char *model_na
 		import_state->SelectFilePressed = false;
 	}
 }
+
+// window for asking to save unsaved data
+int newForSave(int *new_status, bool *status, char *INPUT, Font *font)
+{	
+	GuiUnlock();
+	*new_status = 1;
+	Rectangle window = {(float) WIDTH/4, (float) HEIGHT/4, (float) WIDTH/2, (float) HEIGHT/2};
+	DrawRectangle(0, 0, WIDTH, HEIGHT, Fade(RAYWHITE, 0.8f));
+	int gui = GuiMessageBox(window, GuiIconText(ICON_WAVE, ""), "Do you want to save?", "Yes;No");
+		
+	if(gui == 1)
+	{
+		*status = true;
+		*new_status = 0;
+		saveWindow(status, INPUT, font);	
+	}
+	else if(gui == 0 || gui == 2) *new_status = 0;
+	else *new_status = 1;
+
+	GuiLock();
+
+	return gui;
+}
+
 // INFO window properities
 int infoWindow(int *status)
 {
@@ -92,7 +119,6 @@ int helpWindow(int *message, Font *font)
 	
 	DrawTextEx(*font, TextFormat("\t\tToggle grid"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 190}, 20, 0, BLACK);
 	DrawTextEx(*font, "<G + Ctrl>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 190}, 20, 0, BLACK);
-
 	DrawTextEx(*font, TextFormat("\t\tShow help"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 220}, 20, 0, BLACK);
 	DrawTextEx(*font, "<H + Ctrl>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 220}, 20, 0, BLACK);
 
@@ -149,11 +175,24 @@ int saveWindow(bool *state, char *INPUT, Font *font)
 }
 
 // File panel
-void File(float *panel_width, float *btn_width, float *btn_height, int *pad_y, Model *model, Image *image, Texture2D *image2D, bool *status, int *info_status, char *INPUT, Font *font)
+void File(float *panel_width, float *btn_width, float *btn_height, int *pad_y, Model *model, Image *image, Texture2D *image2D, int *new_status, int *info_status, bool *status, char *INPUT, Font *font)
 {
 	
 	int NewButton = GuiButton((Rectangle) {(float) WIDTH - (*panel_width + *btn_width)/2, *pad_y, *btn_width, *btn_height}, GuiIconText(ICON_FILE_NEW, "[N]ew Project"));
 	
+	switch(NewButton)
+	{
+		// with saved prompt
+		case 1:
+			newForSave(new_status, status, INPUT, font);
+		// just make new	
+		case 2:
+			UnloadModel(*model);
+			UnloadTexture(*image2D);
+			UnloadImage(*image);
+			break;
+	}
+
 	int SaveButton = GuiButton((Rectangle) {(float) WIDTH - (*panel_width + *btn_width)/2, (*pad_y)*2, *btn_width, *btn_height}, GuiIconText(ICON_FILE_SAVE, "[S]ave Data"));
 	
 	if(SaveButton)
@@ -173,6 +212,7 @@ void File(float *panel_width, float *btn_width, float *btn_height, int *pad_y, M
 		UnloadImage(*image);
 		UnloadTexture(*image2D);
 		UnloadModel(*model);
+		UnloadFont(*font);
 		CloseWindow();
 		exit(0);
 	}
@@ -212,9 +252,9 @@ int Radar_Group(float *x_radar, float *y_radar, float *z_radar, float *distance_
 		
 		*distance_radar = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 95.0, *slider_width, 20.0}, "Distance", TextFormat("%.2f m", *distance_radar), *distance_radar, 0, 100);
 		
-		*azymuth_radar = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 135.0, *slider_width, 20.0}, "Azymuth", TextFormat("%.2f °", *azymuth_radar), *azymuth_radar, 0, 360);
+		*azymuth_radar = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 135.0, *slider_width, 20.0}, "Azymuth", TextFormat("%.2f %s", *azymuth_radar, "\u00B0"), *azymuth_radar, 0, 360);
 			
-		*elevation_radar = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 175.0, *slider_width, 20.0}, "Elevation", TextFormat("%.2f °", *elevation_radar), *elevation_radar, -90, 90);
+		*elevation_radar = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 175.0, *slider_width, 20.0}, "Elevation", TextFormat("%.2f %s", *elevation_radar, "\u00B0"), *elevation_radar, -90, 90);
 		
 		CamSet = GuiButton((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/6.6, 215.0f, 80.0f, 20.0f}, "CamSet");
 		}
@@ -259,9 +299,9 @@ int Camera_Group(float *x_camera, float *y_camera, float *z_camera, float *dista
 
 		*distance_camera = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 400.0, *slider_width, 20.0}, "Distance", TextFormat("%.2f m", *distance_camera), *distance_camera, 0, 100);
 		
-		*azymuth_camera = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 440.0, *slider_width, 20.0}, "Azymuth", TextFormat("%.2f °", *azymuth_camera), *azymuth_camera, 0, 360);
+		*azymuth_camera = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 440.0, *slider_width, 20.0}, "Azymuth", TextFormat("%.2f %s", *azymuth_camera, "\u00B0"), *azymuth_camera, 0, 360);
 			
-		*elevation_camera = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 480.0, *slider_width, 20.0}, "Elevation", TextFormat("%.2f °", *elevation_camera), *elevation_camera, -90, 90);
+		*elevation_camera = GuiSlider((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/2.4, 480.0, *slider_width, 20.0}, "Elevation", TextFormat("%.2f %s", *elevation_camera, "\u00B0"), *elevation_camera, -90, 90);
 	
 		RadarSet = GuiButton((Rectangle) {(float) WIDTH - (*group_width + *panel_width)/6.6, 520.0f, 80.0f, 20.0f}, "RadarSet");
 	}

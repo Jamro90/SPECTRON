@@ -9,6 +9,4 @@ void Polar2Cartesian(float *x, float *y, float *z, float *d, float *b, float *e)
 
 void Camera_PreSet(Camera3D *camera);
 
-void toggle(bool *value);
-
 #endif

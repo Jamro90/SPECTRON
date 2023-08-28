@@ -1,10 +1,11 @@
 #include "gui_maker.h"
+#include "calc.h"
 #include <math.h>
 #include <stdio.h>
 #include <time.h> // only for <test>
 #include <stdlib.h>
-#include "calc.h"
 //#include "chart_maker.h"
+
 #define _CRT_SECURE_NO_WARNINGS_
 #define CHART_ARRAY 2048
 
@@ -26,6 +27,7 @@ int main(int argc, char **argv)
 	// program set
 		// status for windows & objects
 	int message_status = 0;
+	int new_status = 0;
 	int info_status = 0;
 	int import_message = 0;
 	bool save = 0;
@@ -112,14 +114,10 @@ int main(int argc, char **argv)
 		// config
 	int grid_count = 100;
 	float grid_res = 0.1;
-	char data_file[256] = {0};
+	char *data_file = {0};
 	
 		// Vectors & Positions
 	Vector3 zero_position = { 0.0f, 0.0f, 0.0f };
-
-		// charts variables
-//	PLFLT x_chart[CHART_ARRAY];
-//	PLFLT y_chart[CHART_ARRAY];
 
 	// random seed for <test>
 	srand(time(NULL));
@@ -135,21 +133,11 @@ int main(int argc, char **argv)
 	// main loop
 	while(!WindowShouldClose())
 	{
-		if(import_message || save || message_status || info_status) GuiLock();
+		if(import_message || save || message_status || info_status || new_status) GuiLock();
 		else GuiUnlock();
-/*
-		for(int i = 0; i < CHART_ARRAY; ++i)
-		{
-			x_chart[i] = (PLFLT) i;
-			y_chart[i] = (PLFLT) rand() ;
-		}
-*/
-	// plotting using plplot <test>
-//		GeneralChart(&x_chart, &y_chart);
-		
 			// image to plot
-		image = LoadImage("general.png");
-		image2D = LoadTextureFromImage(image);
+	//	image = LoadImage("general.png");
+	//	image2D = LoadTextureFromImage(image);
 
 		// key shot cuts check
 			// Exit <ESC>
@@ -162,14 +150,15 @@ int main(int argc, char **argv)
 			exit(0);
 		}
 			// plot visibility <Ctrl + P>
-		((IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_P))) ? plot_visibility = !plot_visibility: NULL;	
+		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_P)) plot_visibility = !plot_visibility;     
 			// grid enable/disable  <Ctrl + G>
-		((IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_G))) ? grid_visibility = !grid_visibility : NULL;
-		((IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_I))) ? info_status = !info_status : NULL;
+		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_G)) grid_visibility = !grid_visibility;
+			// info window enable/disable <Ctrl + I>
+		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_I)) info_status = !info_status;
 			// save data <Ctrl + S>
-		(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) ? save = !save : NULL;
+		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) save = !save;
 			// help <Ctrl + H>
-		(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_H)) ? message_status = !message_status : NULL; 
+		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_H)) message_status = !message_status;
 
 		// camera position/mode update
 		if((IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) || (GetMouseWheelMove() != 0)) 
@@ -269,7 +258,7 @@ int main(int argc, char **argv)
 				if(file_status)
 				{
 					GuiWindowBox(PanelBox, "FILE");
-					File(&panel_width, &btn_width, &btn_height, &pad_y, &model, &image, &image2D, &save, &info_status, &data_file, &font);
+					File(&panel_width, &btn_width, &btn_height, &pad_y, &model, &image, &image2D, &new_status, &info_status, &save, data_file, &font);
 					break;
 				}
 				else break;
@@ -357,10 +346,11 @@ int main(int argc, char **argv)
 
 		if(HelpButton) panel_state = 4;
 
+		if(new_status) newForSave(&new_status, &save, data_file, &font);
 			// save window
 		if(save) saveWindow(&save, data_file, &font);
 			// info window
-		if(info_status) infoWindow(&info_status, &font);
+		if(info_status) infoWindow(&info_status);
 			// help window
 		if(message_status) helpWindow(&message_status, &font);
 			// invalid model import handler
