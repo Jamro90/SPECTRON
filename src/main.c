@@ -6,7 +6,6 @@
 #include <stdlib.h>
 
 #define _CRT_SECURE_NO_WARNINGS_
-#define CHART_ARRAY 2048
 
 #ifdef _WIN32
 	#define PLATFORM "win32"
@@ -38,12 +37,13 @@ int main(int argc, char **argv)
 
 		// object visibility
 	float check_width = 20.0;
-	bool gizmo_visibility = false;
-	bool box_visibility = false;
-	bool model_visibility = true;
-	bool radar_visibility = false;
-	bool grid_visibility = false;
-	bool plot_visibility = false;
+	VIS vis;
+	vis.gizmo = false;
+	vis.box = false;
+	vis.model = true;
+	vis.radar = false;
+	vis.grid = false;
+	vis.plot = false;
 	
 	int panel_state = 0;
 	int material_combo = 0;
@@ -105,15 +105,19 @@ int main(int argc, char **argv)
 	float model_scale = 1.0f;
 
 		//gizmo settings
-	float gizmo_x = 0;
-	float gizmo_y = 0;
-	float gizmo_z = 0;
-	int segments = 16;
-	float cylinder_d = 0.3;
-	float cylinder_h = 4;
-	float cone_d = 0.6;
-	float cone_h = 2 + cylinder_h;
-
+	Gizmo gizmo;
+	gizmo.x = 0;
+	gizmo.y = 0;
+	gizmo.z = 0;
+	gizmo.segments = 16;
+	gizmo.cylinder_d = 0.3;
+	gizmo.cylinder_h = 4;
+	gizmo.cone_d = 0.6;
+	gizmo.cone_h = 2 + gizmo.cylinder_h;
+	gizmo.start = (Vector3) {gizmo.x, gizmo.y, gizmo.z};
+	gizmo.endRed = (Vector3) {gizmo.cylinder_h + gizmo.x, gizmo.y, gizmo.z};
+	gizmo.endGreen = (Vector3) {gizmo.x, gizmo.cylinder_h + gizmo.y, gizmo.z};
+	gizmo.endBlue = (Vector3) {gizmo.x, gizmo.y, gizmo.cylinder_h + gizmo.z};
 		// config
 	int grid_count = 100;
 	float grid_res = 0.1;
@@ -154,9 +158,9 @@ int main(int argc, char **argv)
 			exit(0);
 		}
 			// plot visibility <Ctrl + P>
-		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_P)) plot_visibility = !plot_visibility;     
+		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_P)) vis.plot = !vis.plot;     
 			// grid enable/disable  <Ctrl + G>
-		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_G)) grid_visibility = !grid_visibility;
+		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_G)) vis.grid = !vis.grid;
 			// info window enable/disable <Ctrl + I>
 		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_I)) sig.info_status = !sig.info_status;
 			// save data <Ctrl + S>
@@ -195,23 +199,23 @@ int main(int argc, char **argv)
 		if(IsModelReady(model))	
 		{
 			BoundingBox boundingBox = GetModelBoundingBox(model);
-			if(model_visibility)
+			if(vis.model)
 			{
 				DrawModel(model, zero_position, model_scale, GRAY);
 				DrawModelWires(model, zero_position, model_scale, BLACK);
 			}
 
-			if(box_visibility)
+			if(vis.box)
 			{
 				DrawBoundingBox(boundingBox, DARKBROWN);
 			}
 
 			// gizmo lock in corrner of model
-			gizmo_x = boundingBox.min.x;
-			gizmo_y = boundingBox.min.y;
-			gizmo_z = boundingBox.min.z;
+			gizmo.x = boundingBox.min.x;
+			gizmo.y = boundingBox.min.y;
+			gizmo.z = boundingBox.min.z;
 		}
-			if(radar_visibility) 
+			if(vis.radar) 
 			{
 				//DrawSphere((Vector3) {x, y, z}, 1.0, BLUE);	
 		/*		DrawCylinderEx((Vector3){radar.x, radar.y, radar.z}, 
@@ -222,32 +226,32 @@ int main(int argc, char **argv)
 			*/
 			}
 			// grid draw
-			if(grid_visibility) DrawGrid(grid_count, grid_res);
+			if(vis.grid) DrawGrid(grid_count, grid_res);
 
 			// draw gizmo
-			if(gizmo_visibility)
+			if(vis.gizmo)
 			{
 				// X axis RED
-				DrawCylinderEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {cylinder_h + gizmo_x, gizmo_y, gizmo_z}, cylinder_d, cylinder_d, segments, RED);
-				DrawCylinderWiresEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {cylinder_h + gizmo_x, gizmo_y, gizmo_z}, cylinder_d, cylinder_d, 0, BLACK);
-				DrawCylinderEx( (Vector3) {cylinder_h + gizmo_x, gizmo_y, gizmo_z}, (Vector3) {cone_h + gizmo_x, gizmo_y, gizmo_z}, cone_d, 0.0f, segments, RED);
-				DrawCylinderWiresEx( (Vector3) {cylinder_h + gizmo_x, gizmo_y, gizmo_z}, (Vector3) {cone_h + gizmo_x, gizmo_y, gizmo_z}, cone_d, 0.0f, 0, BLACK);
+				DrawCylinderEx(gizmo.start, gizmo.endRed, gizmo.cylinder_d, gizmo.cylinder_d, gizmo.segments, RED);
+				DrawCylinderWiresEx(gizmo.start, gizmo.endRed, gizmo.cylinder_d, gizmo.cylinder_d, 0, BLACK);
+				DrawCylinderEx(gizmo.endRed, (Vector3) {gizmo.cone_h + gizmo.x, gizmo.y, gizmo.z}, gizmo.cone_d, 0.0f, gizmo.segments, RED);
+				DrawCylinderWiresEx(gizmo.endRed, (Vector3) {gizmo.cone_h + gizmo.x, gizmo.y, gizmo.z}, gizmo.cone_d, 0.0f, 0, BLACK);
 				// Y axis GREEN
-				DrawCylinderEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {gizmo_x, cylinder_h + gizmo_y, gizmo_z}, cylinder_d, cylinder_d, 0, GREEN);
-				DrawCylinderWiresEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {gizmo_x, cylinder_h + gizmo_y, gizmo_z}, cylinder_d, cylinder_d, 0, BLACK);
-				DrawCylinderEx( (Vector3) {gizmo_x, cylinder_h + gizmo_y, gizmo_z}, (Vector3) {gizmo_x, cone_h + gizmo_y, gizmo_z}, cone_d, 0.0f, segments, GREEN);
-				DrawCylinderWiresEx( (Vector3) {gizmo_x, cylinder_h + gizmo_y, gizmo_z}, (Vector3) {gizmo_x, cone_h + gizmo_y, gizmo_z}, cone_d, 0.0f, 0, BLACK);
+				DrawCylinderEx(gizmo.start, gizmo.endGreen, gizmo.cylinder_d, gizmo.cylinder_d, 0, GREEN);
+				DrawCylinderWiresEx(gizmo.start, gizmo.endGreen, gizmo.cylinder_d, gizmo.cylinder_d, 0, BLACK);
+				DrawCylinderEx(gizmo.endGreen, (Vector3) {gizmo.x, gizmo.cone_h + gizmo.y, gizmo.z}, gizmo.cone_d, 0.0f, gizmo.segments, GREEN);
+				DrawCylinderWiresEx(gizmo.endGreen, (Vector3) {gizmo.x, gizmo.cone_h + gizmo.y, gizmo.z}, gizmo.cone_d, 0.0f, 0, BLACK);
 				// Z axis BLUE
-				DrawCylinderEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {gizmo_x, gizmo_y, cylinder_h + gizmo_z}, cylinder_d, cylinder_d, segments, BLUE);
-				DrawCylinderWiresEx( (Vector3) {gizmo_x, gizmo_y, gizmo_z}, (Vector3) {gizmo_x, gizmo_y, cylinder_h + gizmo_z}, cylinder_d, cylinder_d, 0, BLACK);
-				DrawCylinderEx( (Vector3) {gizmo_x, gizmo_y, cylinder_h + gizmo_z}, (Vector3) {gizmo_x, gizmo_y, cone_h + gizmo_z}, cone_d, 0.0f, segments, BLUE);
-				DrawCylinderWiresEx( (Vector3) {gizmo_x, gizmo_y, cylinder_h + gizmo_z}, (Vector3) {gizmo_x, gizmo_y, cone_h + gizmo_z}, cone_d, 0.0f, 0, BLACK);
+				DrawCylinderEx(gizmo.start, gizmo.endBlue, gizmo.cylinder_d, gizmo.cylinder_d, gizmo.segments, BLUE);
+				DrawCylinderWiresEx(gizmo.start, gizmo.endBlue, gizmo.cylinder_d, gizmo.cylinder_d, 0, BLACK);
+				DrawCylinderEx(gizmo.endBlue, (Vector3) {gizmo.x, gizmo.y, gizmo.cone_h + gizmo.z}, gizmo.cone_d, 0.0f, gizmo.segments, BLUE);
+				DrawCylinderWiresEx(gizmo.endBlue, (Vector3) {gizmo.x, gizmo.y, gizmo.cone_h + gizmo.z}, gizmo.cone_d, 0.0f, 0, BLACK);
 			}
 
 		EndMode3D();
 
 				// plot visibility
-		if(plot_visibility) DrawTextureEx(image2D, (Vector2) {WIDTH * .01, HEIGHT * .58}, 0.0f, 0.75f, WHITE);
+		if(vis.plot) DrawTextureEx(image2D, (Vector2) {WIDTH * .01, HEIGHT * .58}, 0.0f, 0.75f, WHITE);
 
 			// Title Text
 			DrawText("SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics", 10.0f, 10.0f, 10, BLACK); 
@@ -274,16 +278,16 @@ int main(int argc, char **argv)
 					GuiPanel(PanelBox, "VIEW");
 					GuiGroupBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/2, 50.0, geo.group_width, 60.0}, "Object visibility");
 					// check boxes
-					model_visibility = GuiCheckBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/2.4, 70.0f, check_width, 20.0f}, "Model", model_visibility);
-					box_visibility = GuiCheckBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/3.5, 70.0f, check_width, 20.0f}, "Box", box_visibility);
-					radar_visibility = GuiCheckBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/6.6, 70.0f, check_width, 20.0f}, "Radar", radar_visibility);
+					vis.model = GuiCheckBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/2.4, 70.0f, check_width, 20.0f}, "Model", vis.model);
+					vis.box = GuiCheckBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/3.5, 70.0f, check_width, 20.0f}, "Box", vis.box);
+					vis.radar = GuiCheckBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/6.6, 70.0f, check_width, 20.0f}, "Radar", vis.radar);
 
 					GuiGroupBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/2, 140.0, geo.group_width, 60.0}, "Sceen visibility");
-					grid_visibility = GuiCheckBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/2.4, 160.0f, check_width, 20.0f}, "Grid", grid_visibility);
-					gizmo_visibility = GuiCheckBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/3.5, 160.0f, check_width, 20.0f}, "Gizmo", gizmo_visibility);
+					vis.grid = GuiCheckBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/2.4, 160.0f, check_width, 20.0f}, "Grid", vis.grid);
+					vis.gizmo = GuiCheckBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/3.5, 160.0f, check_width, 20.0f}, "Gizmo", vis.gizmo);
 
 					GuiGroupBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/2, 230.0, geo.group_width, 60.0}, "Data visibility");
-					plot_visibility = GuiCheckBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/3.5, 250.0f, check_width, 20.0f}, "plot", plot_visibility);
+					vis.plot = GuiCheckBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/3.5, 250.0f, check_width, 20.0f}, "plot", vis.plot);
 
 					break;
 				}

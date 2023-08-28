@@ -53,6 +53,29 @@ typedef struct{
 	float slider_width;
 }Geometry;
 
+typedef struct{
+	bool gizmo;
+	bool box;
+	bool model;
+	bool radar;
+	bool grid;
+	bool plot;
+}VIS;
+
+typedef struct{
+	float x;
+	float y;
+	float z;
+	float cylinder_d;
+	float cylinder_h;
+	float cone_d;
+	float cone_h;
+	int segments;
+	Vector3 start;
+	Vector3 endRed;
+	Vector3 endGreen;
+	Vector3 endBlue;
+}Gizmo;
 // functions 
 
 int import_error_window(int *status);
