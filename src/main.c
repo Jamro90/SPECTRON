@@ -17,6 +17,7 @@
 
 #define WIDTH  GetScreenWidth()
 #define HEIGHT GetScreenHeight()
+#define LIGHT  300000
 
 // SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics
 int main(int argc, char **argv)
@@ -52,11 +53,11 @@ int main(int argc, char **argv)
 
 	// widgets parameters
 	Geometry geo;
-	geo.panel_width = WIDTH * 0.2;
+	geo.panel_width = WIDTH * 0.25;
 	geo.btn_width = 170.0f;
 	geo.btn_height = 50.0f;
 	geo.pad_y = geo.btn_height + 10;
-	geo.group_width = WIDTH * 0.18;
+	geo.group_width = WIDTH * 0.22;
 	geo.slider_width = WIDTH * 0.1;
 
 	// widgets preprogram
@@ -76,7 +77,7 @@ int main(int argc, char **argv)
 	radar.elevation = 0.0f;
 	radar.combo = 0;
 	radar.lambda = 1.0f;
-	radar.freq = 1.0f;
+	radar.freq = radar.lambda * LIGHT;
 		// camera
 	Cam cam;
 	cam.x = 0;
@@ -168,29 +169,30 @@ int main(int argc, char **argv)
 			// help <Ctrl + H>
 		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_H)) sig.message_status = !sig.message_status;
 
+		UpdateCamera(&camera, cam_mode);
+		camera.target = zero_position;	
+			
 		// camera position/mode update
 		if((IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) || (GetMouseWheelMove() != 0)) 
 		{
-			UpdateCamera(&camera, cam_mode);
-			camera.target = (Vector3){0.0f, 0.0f, 0.0f};	
+
+			Polar2Cartesian(&cam.x, &cam.y, &cam.z, &cam.distance, &cam.azymuth, &cam.elevation);
 			cam.x = camera.position.x;
 			cam.y = camera.position.y;
 			cam.z = camera.position.z;
 
 			Cartesian2Polar(&cam.x, &cam.y, &cam.z, &cam.distance, &cam.azymuth, &cam.elevation);
-			Polar2Cartesian(&cam.x, &cam.y, &cam.z, &cam.distance, &cam.azymuth, &cam.elevation);
 		}
 		else
 		{
-			camera.target = (Vector3){0.0f, 0.0f, 0.0f};	
-			cam.x = camera.position.x;
-			cam.y = camera.position.y;
-			cam.z = camera.position.z;
-			Polar2Cartesian(&cam.x, &cam.y, &cam.z, &cam.distance, &cam.azymuth, &cam.elevation);
-			Cartesian2Polar(&cam.x, &cam.y, &cam.z, &cam.distance, &cam.azymuth, &cam.elevation);
+			if(cam.combo == 0) Cartesian2Polar(&cam.x, &cam.y, &cam.z, &cam.distance, &cam.azymuth, &cam.elevation);
+			else Polar2Cartesian(&cam.x, &cam.y, &cam.z, &cam.distance, &cam.azymuth, &cam.elevation);
+			camera.position.x = cam.x;
+			camera.position.y = cam.y;
+			camera.position.z = cam.z;
 		}
 
-		// drawing objects
+				// drawing objects
 		BeginDrawing();
 
 			ClearBackground(RAYWHITE);
@@ -214,16 +216,25 @@ int main(int argc, char **argv)
 			gizmo.x = boundingBox.min.x;
 			gizmo.y = boundingBox.min.y;
 			gizmo.z = boundingBox.min.z;
+			gizmo.start = (Vector3) {gizmo.x, gizmo.y, gizmo.z};
+			gizmo.endRed = (Vector3) {gizmo.cylinder_h + gizmo.x, gizmo.y, gizmo.z};
+			gizmo.endGreen = (Vector3) {gizmo.x, gizmo.cylinder_h + gizmo.y, gizmo.z};
+			gizmo.endBlue = (Vector3) {gizmo.x, gizmo.y, gizmo.cylinder_h + gizmo.z};
+
 		}
+
+		if(radar.combo == 0) Cartesian2Polar(&radar.x, &radar.y, &radar.z, &radar.distance, &radar.azymuth, &radar.elevation);
+		else Polar2Cartesian(&radar.x, &radar.y, &radar.z, &radar.distance, &radar.azymuth, &radar.elevation);
+
 			if(vis.radar) 
 			{
-				//DrawSphere((Vector3) {x, y, z}, 1.0, BLUE);	
-		/*		DrawCylinderEx((Vector3){radar.x, radar.y, radar.z}, 
-					       (Vector3){radar.x + 10 * cos(radar.azymuth) * sin(radar.elevation),
-							 radar.y + 10 * cos(radar.elevation) * sin(radar.azymuth),
-							 radar.z + 10 * cos(radar.azymuth) * sin(radar.azymuth)},
-							 0, cylinder_d, segments, DARKBLUE);
-			*/
+						//DrawSphere((Vector3) {x, y, z}, 1.0, BLUE);	
+				DrawCylinderEx(	(Vector3){radar.x, radar.y, radar.z}, 
+						(Vector3){radar.x*1.5,//*cos(radar.azymuth * PI/180),
+							  radar.y*1.5,//*sin(radar.azymuth * PI/180),
+							  radar.z*1.5},//*sin(radar.elevation * PI/180)},
+						0, gizmo.cylinder_d, gizmo.segments, 
+						(Color){0x10, 0x4F, 0xCC, 0x55});
 			}
 			// grid draw
 			if(vis.grid) DrawGrid(grid_count, grid_res);

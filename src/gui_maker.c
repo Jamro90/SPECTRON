@@ -30,6 +30,7 @@
 int import_error_window(int *status)
 {
 	GuiUnlock();
+	DrawRectangle(0, 0, WIDTH, HEIGHT, Fade(RAYWHITE, 0.8f));
 	Rectangle window = {(float) WIDTH/8, (float) HEIGHT/8, (float) WIDTH/4, (float) HEIGHT/4};
 	int gui = GuiMessageBox(window, GuiIconText(ICON_GEAR_EX, "Invalid model extension!"), TextFormat("%s", "Supported extension: .obj"), "Ok");
 
@@ -40,6 +41,7 @@ int import_error_window(int *status)
 
 void importWindow(GuiFileDialogState *import_state, Model *model, char *model_name, char *name, int *message)
 {
+	GuiUnlock();
 	if(import_state->SelectFilePressed)
 	{
 		if(  (IsFileExtension(import_state->fileNameText, ".obj")) )
@@ -48,6 +50,7 @@ void importWindow(GuiFileDialogState *import_state, Model *model, char *model_na
 			strcpy(name, TextFormat("%s", import_state->fileNameText));
 			UnloadModel(*model);
 			*model = LoadModel(model_name);
+			GuiLock();
 		}
 		else
 		{ 
@@ -55,6 +58,7 @@ void importWindow(GuiFileDialogState *import_state, Model *model, char *model_na
 			import_error_window(message);
 		}
 		import_state->SelectFilePressed = false;
+		GuiUnlock();
 	}
 }
 
@@ -232,7 +236,6 @@ int Radar_Group(Radar *radar, Geometry *geometry)
 	if (radar->combo == 0)
 	{
 			// coordinats 
-//		Cartesian2Polar(radar->x, radar->y, radar->z, radar->distance, radar->azymuth, radar->elevation);
 	
 		radar->x = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 95.0, geometry->slider_width, 20.0}, "X: ", TextFormat("%.2f m", radar->x), radar->x, -100, 100);
 		
@@ -248,7 +251,6 @@ int Radar_Group(Radar *radar, Geometry *geometry)
 	else if (radar->combo == 1)
 	{
 			// coordinats 
-//		Polar2Cartesian(radar->x, radar->y, radar->z, radar->distance, radar->azymuth, radar->elevation);
 		
 		radar->distance = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 95.0, geometry->slider_width, 20.0}, "Distance", TextFormat("%.2f m", radar->distance), radar->distance, 0, 100);
 		
@@ -264,7 +266,11 @@ int Radar_Group(Radar *radar, Geometry *geometry)
 	
 	radar->freq = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 240.0, geometry->slider_width, 20.0}, "Frequency", TextFormat("%.2f", radar->freq), radar->freq, 1, 999.99);
 
+	GuiComboBox((Rectangle){(float) WIDTH - (geometry->group_width + geometry->panel_width)/6.5, 240.0, geometry->group_width/4.5, 20.0}, "Hz;kHz;MHz;GHz;THz", radar->combo);
+
 	radar->lambda = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 280.0, geometry->slider_width, 20.0}, "Lambda", TextFormat("%.2f", radar->lambda), radar->lambda, 1, 999.99);
+
+	GuiComboBox((Rectangle){(float) WIDTH - (geometry->group_width + geometry->panel_width)/6.5, 280.0, geometry->group_width/4.5, 20.0}, "nm;um;mm;m;km", radar->combo);
 
 	return CamSet;
 }
@@ -281,8 +287,6 @@ int Camera_Group(Cam *cam, Geometry *geometry)
 	
 	if(cam->combo == 0)
 	{
-//		Cartesian2Polar(cam->z, cam->y, cam->z, cam->distance, cam->azymuth, cam->elevation);
-
 		cam->x = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 400.0, geometry->slider_width, 20.0}, "X: ", TextFormat("%.2f m", cam->x), cam->x, -100, 100);
 		
 		cam->y = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 440.0, geometry->slider_width, 20.0}, "Y: ", TextFormat("%.2f m", cam->y), cam->y, -100, 100);
@@ -295,8 +299,6 @@ int Camera_Group(Cam *cam, Geometry *geometry)
 	}
 	else if(cam->combo == 1)
 	{
-//		Polar2Cartesian(cam->x, cam->y, cam->z, cam->distance, cam->azymuth, cam->elevation);
-
 		cam->distance = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 400.0, geometry->slider_width, 20.0}, "Distance", TextFormat("%.2f m", cam->distance), cam->distance, 0, 100);
 		
 		cam->azymuth = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 440.0, geometry->slider_width, 20.0}, "Azymuth", TextFormat("%.2f %s", cam->azymuth, "\u00B0"), cam->azymuth, 0, 360);
