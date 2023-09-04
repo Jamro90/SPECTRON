@@ -4,12 +4,12 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "raylib/src/raylib.h" 
+#include "raylib_binaries/raylib/src/raylib.h"
 #define RAYGUI_IMPLEMENTATION
-#include "raygui/src/raygui.h"
+#include "raylib_binaries/raygui/src/raygui.h"
 #undef RAYGUI_IMPLEMENTATION
 #define GUI_FILE_DIALOG_IMPLEMENTATION
-#include "raygui/gui_file_dialog.h"
+#include "raylib_binaries/raygui/gui_file_dialog.h"
 
 #ifdef _WIN32
 	#include <direct.h>
@@ -63,7 +63,7 @@ void importWindow(GuiFileDialogState *import_state, Model *model, char *model_na
 }
 
 // window for asking to save unsaved data
-int newForSave(int *new_status, bool *status, char *INPUT, Font *font)
+int newForSave(int *new_status, bool *status, char *INPUT)
 {	
 	GuiUnlock();
 	*new_status = 1;
@@ -75,7 +75,7 @@ int newForSave(int *new_status, bool *status, char *INPUT, Font *font)
 	{
 		*status = true;
 		*new_status = 0;
-		saveWindow(status, INPUT, font);	
+		saveWindow(status, INPUT);	
 	}
 	else if(gui == 0 || gui == 2) *new_status = 0;
 	else *new_status = 1;
@@ -104,33 +104,33 @@ int helpWindow(int *message, Font *font)
 	GuiUnlock();
 	Rectangle window = {(float) WIDTH/4, (float) HEIGHT/4, (float) WIDTH/2, (float) HEIGHT/2};
 	DrawRectangle(0, 0, WIDTH, HEIGHT, Fade(RAYWHITE, 0.8f));
-	int gui = GuiMessageBox(window, GuiIconText(ICON_HELP, "HELP"), "SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics", "Ok");
+	int gui = GuiMessageBox(window, GuiIconText(ICON_HELP, "HELP"), NULL, "Ok");
 
 // Text section
 	DrawTextEx(*font, "Short cuts keys:", (Vector2){WIDTH/4 + 10, HEIGHT/4 + 40}, 20, 0, BLACK);
 
 	DrawTextEx(*font, TextFormat("\t\tNew Project"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 70}, 20, 0, BLACK);
-	DrawTextEx(*font, "<N + Ctrl>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 70}, 20, 0, BLACK);
+	DrawTextEx(*font, "<Ctrl + N>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 70}, 20, 0, BLACK);
 
 	DrawTextEx(*font, TextFormat("\t\tSave data"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 100}, 20, 0, BLACK);
-	DrawText("<S + Ctrl>", WIDTH/4 + 300, HEIGHT/4 + 100, 20, BLACK);
+	DrawTextEx(*font, "<Ctrl + S>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 100}, 20, 0, BLACK);
 
 	DrawTextEx(*font, TextFormat("\t\tInfo"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 130}, 20, 0, BLACK);
-	DrawTextEx(*font, "<I + Ctrl>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 130}, 20, 0, BLACK);
+	DrawTextEx(*font, "<Ctrl + I>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 130}, 20, 0, BLACK);
 	
 	DrawTextEx(*font, TextFormat("\t\tExit program"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 160}, 20, 0, BLACK);
 	DrawTextEx(*font, "<ESC>", (Vector2){WIDTH/4 + 320, HEIGHT/4 + 160}, 20, 0, BLACK);
 	
 	DrawTextEx(*font, TextFormat("\t\tToggle grid"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 190}, 20, 0, BLACK);
-	DrawTextEx(*font, "<G + Ctrl>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 190}, 20, 0, BLACK);
+	DrawTextEx(*font, "<Ctrl + G>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 190}, 20, 0, BLACK);
 	DrawTextEx(*font, TextFormat("\t\tShow help"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 220}, 20, 0, BLACK);
-	DrawTextEx(*font, "<H + Ctrl>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 220}, 20, 0, BLACK);
+	DrawTextEx(*font, "<Ctrl + H>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 220}, 20, 0, BLACK);
 
 	DrawTextEx(*font, TextFormat("\t\tImport model"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 250}, 20, 0, BLACK);
-	DrawTextEx(*font, "<P + Ctrl>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 250}, 20, 0, BLACK);
+	DrawTextEx(*font, "<Ctrl + P>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 250}, 20, 0, BLACK);
 
 	DrawTextEx(*font, TextFormat("\t\tToggle camera mode"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 280}, 20, 0, BLACK);
-	DrawTextEx(*font, "<Y + Ctrl>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 280}, 20, 0, BLACK);
+	DrawTextEx(*font, "<Ctrl + Y>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 280}, 20, 0, BLACK);
 
 	if((gui == 0) || (gui == 1)) *message = 0;
 	GuiLock();
@@ -138,7 +138,7 @@ int helpWindow(int *message, Font *font)
 }
 
 // SAVE window properties
-int saveWindow(bool *state, char *INPUT, Font *font)
+int saveWindow(bool *state, char *INPUT)
 {
 	GuiUnlock();
 	DrawRectangle(0, 0, WIDTH, HEIGHT, Fade(RAYWHITE, 0.8f));
@@ -188,7 +188,7 @@ void File(Geometry *geometry, Model *model, Image *image, Texture2D *image2D, Si
 	{
 		// with saved prompt
 		case 1:
-			newForSave(&sig->new_status, &sig->save, INPUT, font);
+			newForSave(&sig->new_status, &sig->save, INPUT);
 		// just make new	
 		case 2:
 			UnloadModel(*model);
@@ -202,7 +202,7 @@ void File(Geometry *geometry, Model *model, Image *image, Texture2D *image2D, Si
 	if(SaveButton)
 	{
 		sig->save = true;
-		saveWindow(&sig->save, INPUT, font);
+		saveWindow(&sig->save, INPUT);
 	}
 
 	int InfoButton = GuiButton((Rectangle) {(float) WIDTH - (geometry->panel_width + geometry->btn_width)/2, (geometry->pad_y)*3, geometry->btn_width, geometry->btn_height}, GuiIconText(ICON_INFO, "[I]nfo"));
@@ -266,11 +266,11 @@ int Radar_Group(Radar *radar, Geometry *geometry)
 	
 	radar->freq = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 240.0, geometry->slider_width, 20.0}, "Frequency", TextFormat("%.2f", radar->freq), radar->freq, 1, 999.99);
 
-	GuiComboBox((Rectangle){(float) WIDTH - (geometry->group_width + geometry->panel_width)/6.5, 240.0, geometry->group_width/4.5, 20.0}, "Hz;kHz;MHz;GHz;THz", radar->combo);
+//	GuiComboBox((Rectangle){(float) WIDTH - (geometry->group_width + geometry->panel_width)/6.5, 240.0, geometry->group_width/4.5, 20.0}, "Hz;kHz;MHz;GHz;THz", 1);
 
 	radar->lambda = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 280.0, geometry->slider_width, 20.0}, "Lambda", TextFormat("%.2f", radar->lambda), radar->lambda, 1, 999.99);
 
-	GuiComboBox((Rectangle){(float) WIDTH - (geometry->group_width + geometry->panel_width)/6.5, 280.0, geometry->group_width/4.5, 20.0}, "nm;um;mm;m;km", radar->combo);
+//	GuiComboBox((Rectangle){(float) WIDTH - (geometry->group_width + geometry->panel_width)/6.5, 280.0, geometry->group_width/4.5, 20.0}, "nm;um;mm;m;km", 1);
 
 	return CamSet;
 }

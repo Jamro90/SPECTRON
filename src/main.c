@@ -1,4 +1,5 @@
 #include "gui_maker.h"
+#include "raylib_binaries/raygui/src/raygui.h"
 #include "calc.h"
 #include <math.h>
 #include <stdio.h>
@@ -20,7 +21,7 @@
 #define LIGHT  300000
 
 // SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics
-int main(int argc, char **argv)
+int main(void)
 {
 	InitWindow(WIDTH, HEIGHT, "SPECTRON");
 	// program set
@@ -77,7 +78,8 @@ int main(int argc, char **argv)
 	radar.elevation = 0.0f;
 	radar.combo = 0;
 	radar.lambda = 1.0f;
-	radar.freq = radar.lambda * LIGHT;
+	//radar.lambda_fix = "nm";
+	//radar.freq = wave2freq(&(radar.lambda), radar.lambda_fix, radar.freq_fix);
 		// camera
 	Cam cam;
 	cam.x = 0;
@@ -367,9 +369,9 @@ int main(int argc, char **argv)
 
 		if(HelpButton) panel_state = 4;
 
-		if(sig.new_status) newForSave(&sig.new_status, &sig.save, data_file, &font);
+		if(sig.new_status) newForSave(&sig.new_status, &sig.save, data_file);
 			// save window
-		if(sig.save) saveWindow(&sig.save, data_file, &font);
+		if(sig.save) saveWindow(&sig.save, data_file);
 			// info window
 		if(sig.info_status) infoWindow(&sig.info_status);
 			// help window
@@ -398,8 +400,7 @@ int main(int argc, char **argv)
 
 	UnloadTexture(image2D);	
 	UnloadImage(image);
-
-
+	UnloadFont(font);
 	// program cleaning
 	UnloadModel(model);
 	CloseWindow();

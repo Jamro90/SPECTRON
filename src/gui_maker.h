@@ -2,10 +2,10 @@
 #define GUI_MAKER
 
 #include "gui_maker.h"
-#include "raylib/src/raylib.h"
+#include "raylib_binaries/raylib/src/raylib.h"
 
 #define RAYGUI_GUI_FILE_DIALOG_IMPLEMENTATION
-#include "raygui/gui_file_dialog.h"
+#include "raylib_binaries/raygui/gui_file_dialog.h"
 #include <stdbool.h>
 
 // structures for simple code syntax
@@ -29,7 +29,9 @@ typedef struct{
 	float elevation;
 	int combo;
 	float lambda;
+	char *lambda_fix;
 	float freq;
+	char *freq_fix;
 
 }Radar;
 
@@ -82,13 +84,13 @@ int import_error_window(int *status);
 
 void importWindow(GuiFileDialogState *import_state, Model *model, char *model_name, char *name, int *message);
 
-int newForSave(int *new_status, bool *status, char *INPUT, Font *font);
+int newForSave(int *new_status, bool *status, char *INPUT);
 	
 int infoWindow(int *info_status);
 	
 int helpWindow(int *message, Font *font);
 
-int saveWindow(bool *state, char *INPUT, Font *font);
+int saveWindow(bool *state, char *INPUT);
 
 void File(Geometry *geometry, Model *model, Image *image, Texture2D *image2D, Signals *sig, char *INPUT, Font *font);
 
