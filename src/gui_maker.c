@@ -237,11 +237,11 @@ int Radar_Group(Radar *radar, Geometry *geometry)
 	{
 			// coordinats 
 	
-		radar->x = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 95.0, geometry->slider_width, 20.0}, "X: ", TextFormat("%.2f m", radar->x), radar->x, -100, 100);
+		radar->x = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 95.0, geometry->slider_width, 20.0}, "X: ", TextFormat("%.2f m", radar->x), radar->x, -1e3, 1e3);
 		
-		radar->y = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 135.0, geometry->slider_width, 20.0}, "Y: ", TextFormat("%.2f m", radar->y), radar->y, -100, 100);
+		radar->y = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 135.0, geometry->slider_width, 20.0}, "Y: ", TextFormat("%.2f m", radar->y), radar->y, -1e3, 1e3);
 			
-	 	radar->z = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 175.0, geometry->slider_width, 20.0}, "Z: ", TextFormat("%.2f m", radar->z), radar->z, -100, 100);
+	 	radar->z = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 175.0, geometry->slider_width, 20.0}, "Z: ", TextFormat("%.2f m", radar->z), radar->z, -1e3, 1e3);
 	
 		GuiSetState(STATE_DISABLED);
 		CamSet = GuiButton((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/6.6, 215.0f, 80.0f, 20.0f}, "CamSet");
@@ -252,7 +252,7 @@ int Radar_Group(Radar *radar, Geometry *geometry)
 	{
 			// coordinats 
 		
-		radar->distance = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 95.0, geometry->slider_width, 20.0}, "Distance", TextFormat("%.2f m", radar->distance), radar->distance, 0, 100);
+		radar->distance = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 95.0, geometry->slider_width, 20.0}, "Distance", TextFormat("%.2f m", radar->distance), radar->distance, 0, 1732.05);
 		
 		radar->azymuth = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 135.0, geometry->slider_width, 20.0}, "Azymuth", TextFormat("%.2f %s", radar->azymuth, "\u00B0"), radar->azymuth, 0, 360);
 			
@@ -266,11 +266,11 @@ int Radar_Group(Radar *radar, Geometry *geometry)
 	
 	radar->freq = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 240.0, geometry->slider_width, 20.0}, "Frequency", TextFormat("%.2f", radar->freq), radar->freq, 1, 999.99);
 
-//	GuiComboBox((Rectangle){(float) WIDTH - (geometry->group_width + geometry->panel_width)/6.5, 240.0, geometry->group_width/4.5, 20.0}, "Hz;kHz;MHz;GHz;THz", 1);
+	radar->freq_fix = GuiComboBox((Rectangle){(float) WIDTH - (geometry->group_width + geometry->panel_width)/6.5, 240.0, geometry->group_width/4.5, 20.0}, "MHz;GHz;THz", radar->freq_fix);
 
 	radar->lambda = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 280.0, geometry->slider_width, 20.0}, "Lambda", TextFormat("%.2f", radar->lambda), radar->lambda, 1, 999.99);
 
-//	GuiComboBox((Rectangle){(float) WIDTH - (geometry->group_width + geometry->panel_width)/6.5, 280.0, geometry->group_width/4.5, 20.0}, "nm;um;mm;m;km", 1);
+	radar->lambda_fix = GuiComboBox((Rectangle){(float) WIDTH - (geometry->group_width + geometry->panel_width)/6.5, 280.0, geometry->group_width/4.5, 20.0}, "um;mm;m", radar->lambda_fix);
 
 	return CamSet;
 }
@@ -299,7 +299,7 @@ int Camera_Group(Cam *cam, Geometry *geometry)
 	}
 	else if(cam->combo == 1)
 	{
-		cam->distance = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 400.0, geometry->slider_width, 20.0}, "Distance", TextFormat("%.2f m", cam->distance), cam->distance, 0, 100);
+		cam->distance = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 400.0, geometry->slider_width, 20.0}, "Distance", TextFormat("%.2f m", cam->distance), cam->distance, 0, 173.21);
 		
 		cam->azymuth = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 440.0, geometry->slider_width, 20.0}, "Azymuth", TextFormat("%.2f %s", cam->azymuth, "\u00B0"), cam->azymuth, 0, 360);
 			

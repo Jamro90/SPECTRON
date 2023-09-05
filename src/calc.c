@@ -2,6 +2,7 @@
 
 #include "raylib_binaries/raylib/src/raylib.h"
 
+#include "gui_maker.h"
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -33,80 +34,61 @@ void Polar2Cartesian(float *x, float *y, float *z, float *d, float *b, float *e)
 	*y = (*d) * cos((*e) * PI/180) * sin((*b) * PI/180);
 	*z = (*d) * sin((*e) * PI/180);
 }
-/*
+
 // frequency -> wave length
-float freq2wave(float *freq, char *fix_in, char *fix_out) 
+float freq2wave(Radar *radar) 
 {	
-	float fr = (*freq);
-	if(!strcmp(fix_in, "THz")) (fr) * 1e12;
-	else if(!strcmp(fix_in, "GHz")) (fr) * 1e9;
-	else if(!strcmp(fix_in, "MHz")) (fr) * 1e6;
-	else if(!strcmp(fix_in, "kHz")) (fr) * 1e3;
+	float fr = (radar->freq);
+	if((radar->freq_fix) == 3) fr *= 1e12;
+	else if((radar->freq_fix) == 2) fr *= 1e9;
+	else if((radar->freq_fix) == 1) fr *= 1e6;
 
-	float wave_length = 3000000/(fr);
+	radar->lambda = 3000000/fr;
 
-	if(wave_length > 1e3)
+	if((radar->lambda >= 1) && (radar->lambda < 1e3)) radar->lambda_fix = 3; 
+	else if((radar->lambda >= 1e-3) && (radar->lambda < 1))
 	{
-		strcpy(fix_out, "km"); 
-		wave_length *= 1e-3;
+		radar->lambda_fix = 2;
+		radar->lambda *= 1e3;
 	}
-	else if(wave_length > 1) strcpy(fix_out, "m");
-	else if(wave_length > 1e-3) 
+	else if((radar->lambda >= 1e-6) && (radar->lambda < 1e-3)) 
 	{
-		strcpy(fix_out, "mm");
-		wave_length *= 1e3;
-	}
-	else if(wave_length > 1e-6) 
-	{
-		strcpy(fix_out, "um");
-		wave_length *= 1e6;
-	}
-	else 
-	{
-		strcpy(fix_out, "nm");
-		wave_length *= 1e9;
+		radar->lambda_fix = 1;
+		radar->lambda *= 1e6;
 	}
 
-	return wave_length;
+	return radar->lambda;
 }
 
 // wave length -> frequency
-float wave2freq(float *wave_length, char *fix_in, char *fix_out)
+float wave2freq(Radar *radar)
 {
-	float wave = (*wave_length);
-	if(!strcmp(fix_in, "km")) wave *= 1e3;
+	float wave = radar->lambda;
 	// if for meters is pointless
-	else if(!strcmp(fix_in, "mm")) wave *= 1e-3;
-	else if(!strcmp(fix_in, "um")) wave *= 1e-6;
-	else if(!strcmp(fix_in, "nm")) wave *= 1e-9;
+	if(radar->lambda_fix == 1) wave *= 1e-6;
+	else if(radar->lambda_fix == 2) wave *= 1e-3;
 
 	float freq = 3000000/(wave);
 	
-	if(freq > 1e12) 
+	if(freq >= 1e12) 
 	{
-		strcpy(fix_out, "THz");
+		radar->freq_fix = 3;
 		freq *= 1e-12;
 	}
-	else if(freq > 1e9)
+	else if((freq >= 1e9) && (freq < 1e12))
 	{
-		strcpy(fix_out, "GHz");
+		radar->freq_fix = 2;
 		freq *= 1e-9;
 	}
-	else if(freq > 1e6)
+	else if((freq >= 1e6) && (freq < 1e9))
 	{
-		strcpy(fix_out, "MHz");
+		radar->freq_fix = 1;
 		freq *= 1e-6;
 	}
-	else if(freq > 1e3)
-	{
-		strcpy(fix_out, "kHz");
-		freq *= 1e-3;
-	}
-	else strcpy(fix_out, "Hz");
 
 	return freq; 
 }
-*/
+
 // pre-set camera position
 void Camera_PreSet(Camera3D *camera)
 {

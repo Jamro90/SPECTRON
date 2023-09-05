@@ -29,9 +29,9 @@ typedef struct{
 	float elevation;
 	int combo;
 	float lambda;
-	char *lambda_fix;
+	int lambda_fix;
 	float freq;
-	char *freq_fix;
+	int freq_fix;
 
 }Radar;
 

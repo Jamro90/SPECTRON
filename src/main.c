@@ -78,8 +78,9 @@ int main(void)
 	radar.elevation = 0.0f;
 	radar.combo = 0;
 	radar.lambda = 1.0f;
-	//radar.lambda_fix = "nm";
-	//radar.freq = wave2freq(&(radar.lambda), radar.lambda_fix, radar.freq_fix);
+	radar.lambda_fix = 4;
+	radar.freq_fix = 1;
+	radar.freq = wave2freq(&radar);
 		// camera
 	Cam cam;
 	cam.x = 0;
@@ -148,6 +149,8 @@ int main(void)
 			// image to plot
 	//	image = LoadImage("general.png");
 	//	image2D = LoadTextureFromImage(image);
+		
+		radar.freq = wave2freq(&radar);
 
 		// key shot cuts check
 			// Exit <ESC>
