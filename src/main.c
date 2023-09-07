@@ -1,6 +1,6 @@
-#include "gui_maker.h"
 #include "raylib_binaries/raygui/src/raygui.h"
 #include "calc.h"
+#include "chart_maker.h"
 #include <math.h>
 #include <stdio.h>
 #include <time.h> // only for <test>
@@ -77,10 +77,11 @@ int main(void)
 	radar.azymuth = 0.0f;
 	radar.elevation = 0.0f;
 	radar.combo = 0;
-	radar.lambda = 1.0f;
-	radar.lambda_fix = 4;
 	radar.freq_fix = 1;
-	radar.freq = wave2freq(&radar);
+	radar.freq = 1.0f;
+	radar.lambda = freq2wave(&radar);
+	sprintf(radar.lambda_fix, "m");
+
 		// camera
 	Cam cam;
 	cam.x = 0;
@@ -141,6 +142,8 @@ int main(void)
 	const char *font_name = "Roboto_font/RobotoMonoNerdFont-Regular.ttf";
 	Font font = LoadFont(font_name);
 
+	DATA data;
+
 	// main loop
 	while(!WindowShouldClose())
 	{
@@ -150,7 +153,7 @@ int main(void)
 	//	image = LoadImage("general.png");
 	//	image2D = LoadTextureFromImage(image);
 		
-		radar.freq = wave2freq(&radar);
+		radar.lambda = freq2wave(&radar);
 
 		// key shot cuts check
 			// Exit <ESC>
@@ -173,6 +176,7 @@ int main(void)
 		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) sig.save = !sig.save;
 			// help <Ctrl + H>
 		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_H)) sig.message_status = !sig.message_status;
+		if(IsKeyDown(KEY_Q) || IsKeyDown(KEY_E)) NULL;
 
 		UpdateCamera(&camera, cam_mode);
 		camera.target = zero_position;	
@@ -267,7 +271,15 @@ int main(void)
 		EndMode3D();
 
 				// plot visibility
-		if(vis.plot) DrawTextureEx(image2D, (Vector2) {WIDTH * .01, HEIGHT * .58}, 0.0f, 0.75f, WHITE);
+		//if(vis.plot) DrawTextureEx(image2D, (Vector2) {WIDTH * .01, HEIGHT * .58}, 0.0f, 0.75f, WHITE);
+
+		DataCounter(&data);
+
+		if(vis.plot)
+		{
+			PowerChart(&data); 
+			PolarChart(&data);
+		}
 
 			// Title Text
 			DrawText("SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics", 10.0f, 10.0f, 10, BLACK); 
@@ -381,7 +393,7 @@ int main(void)
 		if(sig.message_status) helpWindow(&sig.message_status, &font);
 			// invalid model import handler
 		if(sig.import_message) import_error_window(&sig.import_message);
-
+		
 		// Radar & Camera polar setting
 		if(RadarSet)
 		{
@@ -407,6 +419,5 @@ int main(void)
 	// program cleaning
 	UnloadModel(model);
 	CloseWindow();
-
 	return 0;
 }

@@ -1,10 +1,13 @@
 CC=clang
 PROG = spectron
-SRC=main.c gui_maker.c calc.c 
+SRC=main.c gui_maker.c calc.c chart_maker.c
 # Objects for Linux
 OBJ=$(SRC:.c=.o)
 # Flags for Linux
 LFLAGS=-Wextra -Wpedantic -Iraylib_binaries/raylib/src -Lraylib_binaries/raylib/src -Wall -std=c99 -ldl -lrt -lraylib -lpthread -g -lm
+
+WINFLAGS=-lraylib -lgdi32 -lwinmm -static -static-libgcc
+
 
 # Declaring rules not target files
 .PHONY: all win32 win64 clean
@@ -26,10 +29,10 @@ clean:
 
 # Windows 32-bits compilation
 win32: $(SRC)
-	@i686-w64-mingw32-gcc -Iraylib_binaries/raylib_win32/include/ -o spectron_32.exe main.c gui_maker.c calc.c  -Lraylib_binaries/raylib_win32/lib/ -lraylib -lgdi32 -lwinmm -static -static-libgcc
+	@i686-w64-mingw32-gcc -Iraylib_binaries/raylib_win32/include/ -o $(PROG)_32.exe $(SRC) -Lraylib_binaries/raylib_win32/lib/ $(WINFLAGS)
 	@printf "\x1b[32mWindows spectron_32.exe Compiled!\x1b[0m\n"
 
 # Windows 64-bits compilation
 win64: $(SRC)
-	@x86_64-w64-mingw32-gcc -Iraylib_binaries/raylib_win64/include/ -o spectron_64.exe main.c gui_maker.c calc.c  -Lraylib_binaries/raylib_win64/lib/ -lraylib -lgdi32 -lwinmm -static -static-libgcc
+	@x86_64-w64-mingw32-gcc -Iraylib_binaries/raylib_win64/include/ -o $(PROG)_64.exe $(SRC) -Lraylib_binaries/raylib_win64/lib/ $(WINFLAGS)
 	@printf "\x1b[32mWindows spectron_64.exe Compiled!\x1b[0m\n"

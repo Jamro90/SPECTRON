@@ -29,7 +29,7 @@ typedef struct{
 	float elevation;
 	int combo;
 	float lambda;
-	int lambda_fix;
+	char lambda_fix[8];
 	float freq;
 	int freq_fix;
 

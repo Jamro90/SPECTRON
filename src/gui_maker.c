@@ -227,7 +227,7 @@ int Radar_Group(Radar *radar, Geometry *geometry)
 {
 	int CamSet = 0;
 		// Radar Group
-	GuiGroupBox((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2, 50.0, geometry->group_width, 260.0}, "Radar Settings");
+	GuiGroupBox((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2, 50.0, geometry->group_width, 270.0}, "Radar Settings");
 
 	GuiLabel((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.5, 70.0, geometry->group_width, 20.0}, "Radar Position");
 
@@ -262,15 +262,24 @@ int Radar_Group(Radar *radar, Geometry *geometry)
 		}
 
 
-	GuiLabel((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.5, 215.0, geometry->group_width, 20.0}, "Radar Params");
+	GuiLabel((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.5, 235.0, geometry->group_width, 20.0}, "Radar Params");
 	
-	radar->freq = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 240.0, geometry->slider_width, 20.0}, "Frequency", TextFormat("%.2f", radar->freq), radar->freq, 1, 999.99);
+	radar->freq = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 260.0, geometry->slider_width, 20.0}, "Frequency", TextFormat("%.2f", radar->freq), radar->freq, 1, 999.99);
 
-	radar->freq_fix = GuiComboBox((Rectangle){(float) WIDTH - (geometry->group_width + geometry->panel_width)/6.5, 240.0, geometry->group_width/4.5, 20.0}, "MHz;GHz;THz", radar->freq_fix);
+	radar->freq_fix = GuiComboBox((Rectangle){(float) WIDTH - (geometry->group_width + geometry->panel_width)/6.5, 260.0, geometry->group_width/4.5, 20.0}, "MHz;GHz;THz", radar->freq_fix);
 
-	radar->lambda = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 280.0, geometry->slider_width, 20.0}, "Lambda", TextFormat("%.2f", radar->lambda), radar->lambda, 1, 999.99);
+	char lambda_text[128];
+	snprintf(lambda_text, sizeof(float), "%f", radar->lambda);
+	
+	GuiLabel((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2 + 10, 290.0, geometry->group_width, 20.0}, "Wave length");
 
-	radar->lambda_fix = GuiComboBox((Rectangle){(float) WIDTH - (geometry->group_width + geometry->panel_width)/6.5, 280.0, geometry->group_width/4.5, 20.0}, "um;mm;m", radar->lambda_fix);
+	GuiLabel((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/5, 290.0, geometry->group_width, 20.0}, lambda_text);
+	
+	GuiLabel((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/6.5, 290.0, geometry->group_width, 20.0}, radar->lambda_fix);
+
+	//radar->lambda = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 280.0, geometry->slider_width, 20.0}, "Lambda", TextFormat("%.2f", radar->lambda), radar->lambda, 1, 999.99);
+
+	//radar->lambda_fix = GuiComboBox((Rectangle){(float) WIDTH - (geometry->group_width + geometry->panel_width)/6.5, 280.0, geometry->group_width/4.5, 20.0}, "um;mm;m", radar->lambda_fix);
 
 	return CamSet;
 }

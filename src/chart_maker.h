@@ -1,18 +1,45 @@
 #ifndef CHART_MAKER
 #define CHART_MAKER
 
-#include "plplot_h/plplot.h"
+#include <stdio.h>
 #include "chart_maker.h"
+#include "gui_maker.h"
 
-double max_number(double *array);
+typedef struct{
+	double *x;
+	double *y;
+	int len;
+	char *title;
+	char *x_label;
+	char *y_label;
+	int width;
+	int height;
+	int font_size;
+	int x_pad;
+	int x_pad2;
+	int y_pad;
+	int y_pad2;
+}Chart;
 
-double min_number(double *array);
+typedef struct{
+	double x[1024];
+	double y[1024];
+	double theta[1024];
+	double z[1024];
+	double x_max;
+	double x_min;
+	double y_max;
+	double y_min;
+	double theta_max;
+	double theta_min;
+	double z_max;
+	double z_min;
+}DATA;
 
-void PolarChart(double *x, double *y);
+void DataCounter(DATA *data);
 
-void LogChart(double *x, double *y);
+void PolarChart(DATA *data);
 
-void GeneralChart(double *x, double *y);
-
+void PowerChart(DATA *data);
 
 #endif // CHART_MAKER

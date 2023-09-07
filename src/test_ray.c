@@ -42,7 +42,7 @@ int main(void)
 			for(size_t i = 0; i < Array_len; ++i)
 			{
 				x[i] = i;
-				y[i] = rand()%250 * pow(-1,i);
+				y[i] = sin(2*PI*i/Array_len);
 				if(y[i] > y_max) y_max = y[i];
 			}
 		}

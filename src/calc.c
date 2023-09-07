@@ -45,15 +45,15 @@ float freq2wave(Radar *radar)
 
 	radar->lambda = 3000000/fr;
 
-	if((radar->lambda >= 1) && (radar->lambda < 1e3)) radar->lambda_fix = 3; 
-	else if((radar->lambda >= 1e-3) && (radar->lambda < 1))
+	if(radar->lambda >= 1) sprintf(radar->lambda_fix, "m");
+	else if((radar->lambda >= 1e-3) && (radar->lambda <= 1))
 	{
-		radar->lambda_fix = 2;
+		sprintf(radar->lambda_fix, "mm");
 		radar->lambda *= 1e3;
 	}
-	else if((radar->lambda >= 1e-6) && (radar->lambda < 1e-3)) 
+	else if((radar->lambda >= 1e-6) && (radar->lambda <= 1e-3))
 	{
-		radar->lambda_fix = 1;
+		sprintf(radar->lambda_fix, "um");
 		radar->lambda *= 1e6;
 	}
 
@@ -65,8 +65,8 @@ float wave2freq(Radar *radar)
 {
 	float wave = radar->lambda;
 	// if for meters is pointless
-	if(radar->lambda_fix == 1) wave *= 1e-6;
-	else if(radar->lambda_fix == 2) wave *= 1e-3;
+	if(!strcmp(radar->lambda_fix, "um")) wave *= 1e-6;
+	else if(!strcmp(radar->lambda_fix, "mm")) wave *= 1e-3;
 
 	float freq = 3000000/(wave);
 	
