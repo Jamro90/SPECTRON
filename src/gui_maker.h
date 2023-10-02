@@ -7,6 +7,7 @@
 #define RAYGUI_GUI_FILE_DIALOG_IMPLEMENTATION
 #include "raylib_binaries/raygui/gui_file_dialog.h"
 #include <stdbool.h>
+#include "chart_maker.h"
 
 // structures for simple code syntax
 

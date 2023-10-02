@@ -1,10 +1,12 @@
 #include "raylib_binaries/raygui/src/raygui.h"
+#include "gui_maker.h"
 #include "calc.h"
-#include "chart_maker.h"
+//#include "chart_maker.h"
 #include <math.h>
 #include <stdio.h>
 #include <time.h> // only for <test>
 #include <stdlib.h>
+#include <float.h>
 
 #define _CRT_SECURE_NO_WARNINGS_
 
@@ -55,18 +57,18 @@ int main(void)
 	// widgets parameters
 	Geometry geo;
 	geo.panel_width = WIDTH * 0.25;
-	geo.btn_width = 170.0f;
-	geo.btn_height = 50.0f;
+	geo.btn_width = 120.0f;
+	geo.btn_height = 30.0f;
 	geo.pad_y = geo.btn_height + 10;
 	geo.group_width = WIDTH * 0.22;
 	geo.slider_width = WIDTH * 0.1;
 
 	// widgets preprogram
 	Rectangle PanelBox = {(float) WIDTH - geo.panel_width, 0.0f, (float) WIDTH - 10, (float) HEIGHT};
-	Rectangle FileBox = {20.0f, check_width, geo.btn_width, geo.btn_height};
-	Rectangle ViewBox = {200.0f, check_width, geo.btn_width, geo.btn_height};
-	Rectangle ToolsBox = {380.0f, check_width, geo.btn_width, geo.btn_height};
-	Rectangle HelpBox = {560.0f, check_width, geo.btn_width, geo.btn_height};
+	Rectangle FileBox = {700.0f, check_width, geo.btn_width, geo.btn_height};
+	Rectangle ViewBox = {850.0f, check_width, geo.btn_width, geo.btn_height};
+	Rectangle ToolsBox = {1000.0f, check_width, geo.btn_width, geo.btn_height};
+	Rectangle HelpBox = {1150.0f, check_width, geo.btn_width, geo.btn_height};
 		// variables for computing cordinates
 		// radar
 	Radar radar;
@@ -126,13 +128,11 @@ int main(void)
 		// config
 	int grid_count = 100;
 	float grid_res = 0.1;
-	char *data_file = {0};
+	char data_file[512];
 	
 		// Vectors & Positions
 	Vector3 zero_position = { 0.0f, 0.0f, 0.0f };
 
-	// random seed for <test>
-	srand(time(NULL));
 	// FPS set
 	SetTargetFPS(60);
 
@@ -144,6 +144,15 @@ int main(void)
 
 	DATA data;
 
+	data.x_max = DBL_MIN;
+	data.x_min = DBL_MAX;
+
+	for(size_t i = 0; i < sizeof(data.x)/sizeof(data.x[0]); ++i)
+	{
+		data.x[i] = 360*i/(sizeof(data.x)/sizeof(data.x[0]));
+		if(data.x[i] < data.x_min) data.x_min = data.x[i];
+		if(data.x[i] > data.x_max) data.x_max = data.x[i];
+	}
 	// main loop
 	while(!WindowShouldClose())
 	{
@@ -269,9 +278,6 @@ int main(void)
 			}
 
 		EndMode3D();
-
-				// plot visibility
-		//if(vis.plot) DrawTextureEx(image2D, (Vector2) {WIDTH * .01, HEIGHT * .58}, 0.0f, 0.75f, WHITE);
 
 		DataCounter(&data);
 

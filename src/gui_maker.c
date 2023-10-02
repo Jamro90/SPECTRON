@@ -1,4 +1,5 @@
 #include "gui_maker.h"
+#include "chart_maker.h"
 #include <stdbool.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -75,7 +76,7 @@ int newForSave(int *new_status, bool *status, char *INPUT)
 	{
 		*status = true;
 		*new_status = 0;
-		saveWindow(status, INPUT);	
+		saveWindow(status, INPUT);
 	}
 	else if(gui == 0 || gui == 2) *new_status = 0;
 	else *new_status = 1;
@@ -146,16 +147,15 @@ int saveWindow(bool *state, char *INPUT)
 	
 	if(gui == 1)
 	{
-		DrawText(TextFormat("%s", INPUT), 200, 200, 30, GREEN);
-
 		if(!strcmp("linux", PLATFORM))
 		{
 			//mkdir(INPUT, 0777);
 			MKDIR(INPUT);
+
 			char file_name[1024];
-			sprintf(file_name, "%s/%s.txt", INPUT, INPUT);
+			snprintf(file_name, 1024, "%s/%s.txt", INPUT, INPUT);
 			FILE *file = fopen(file_name, "w");
-			fprintf(file, "%s has been saved correctly!", INPUT);
+			fprintf(file, "correct!\n");
 			fclose(file);
 		}
 		else if(!(strcmp("win32", PLATFORM) || strcmp("win64", PLATFORM)))
@@ -169,9 +169,7 @@ int saveWindow(bool *state, char *INPUT)
 	
 	if((gui == 0) || (gui == 2))
 	{
-		DrawText("Save Terminated!", 200, 200, 30, RED);
 		*state = false;
-		//strcpy(INPUT, "\0"); 
 	}
 
 	GuiLock();
@@ -277,10 +275,6 @@ int Radar_Group(Radar *radar, Geometry *geometry)
 	
 	GuiLabel((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/6.5, 290.0, geometry->group_width, 20.0}, radar->lambda_fix);
 
-	//radar->lambda = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 280.0, geometry->slider_width, 20.0}, "Lambda", TextFormat("%.2f", radar->lambda), radar->lambda, 1, 999.99);
-
-	//radar->lambda_fix = GuiComboBox((Rectangle){(float) WIDTH - (geometry->group_width + geometry->panel_width)/6.5, 280.0, geometry->group_width/4.5, 20.0}, "um;mm;m", radar->lambda_fix);
-
 	return CamSet;
 }
 
@@ -310,7 +304,7 @@ int Camera_Group(Cam *cam, Geometry *geometry)
 	{
 		cam->distance = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 400.0, geometry->slider_width, 20.0}, "Distance", TextFormat("%.2f m", cam->distance), cam->distance, 0, 173.21);
 		
-		cam->azymuth = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 440.0, geometry->slider_width, 20.0}, "Azymuth", TextFormat("%.2f %s", cam->azymuth, "\u00B0"), cam->azymuth, 0, 360);
+		cam->azymuth = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 440.0, geometry->slider_width, 20.0}, "Azymuth", TextFormat("%.2f %s", cam->azymuth, "\u00B0"), cam->azymuth, 0, 359.99);
 			
 		cam->elevation = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 480.0, geometry->slider_width, 20.0}, "Elevation", TextFormat("%.2f %s", cam->elevation, "\u00B0"), cam->elevation, -90, 90);
 	
