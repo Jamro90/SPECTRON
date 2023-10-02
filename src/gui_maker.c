@@ -64,7 +64,7 @@ void importWindow(GuiFileDialogState *import_state, Model *model, char *model_na
 }
 
 // window for asking to save unsaved data
-int newForSave(int *new_status, bool *status, char *INPUT)
+int newForSave(int *new_status, bool *status, char *INPUT, DATA *data)
 {	
 	GuiUnlock();
 	*new_status = 1;
@@ -76,7 +76,7 @@ int newForSave(int *new_status, bool *status, char *INPUT)
 	{
 		*status = true;
 		*new_status = 0;
-		saveWindow(status, INPUT);
+		saveWindow(status, INPUT, data);
 	}
 	else if(gui == 0 || gui == 2) *new_status = 0;
 	else *new_status = 1;
@@ -139,7 +139,7 @@ int helpWindow(int *message, Font *font)
 }
 
 // SAVE window properties
-int saveWindow(bool *state, char *INPUT)
+int saveWindow(bool *state, char *INPUT, DATA *data)
 {
 	GuiUnlock();
 	DrawRectangle(0, 0, WIDTH, HEIGHT, Fade(RAYWHITE, 0.8f));
@@ -155,7 +155,10 @@ int saveWindow(bool *state, char *INPUT)
 			char file_name[1024];
 			snprintf(file_name, 1024, "%s/%s.txt", INPUT, INPUT);
 			FILE *file = fopen(file_name, "w");
-			fprintf(file, "correct!\n");
+			for(size_t i = 0; i < sizeof(data->x)/sizeof(data->x[0]); ++i)
+			{
+				fprintf(file, "%lf\t%lf\n", data->x[i], data->y[i]);
+			}
 			fclose(file);
 		}
 		else if(!(strcmp("win32", PLATFORM) || strcmp("win64", PLATFORM)))
@@ -177,7 +180,7 @@ int saveWindow(bool *state, char *INPUT)
 }
 
 // File panel
-void File(Geometry *geometry, Model *model, Image *image, Texture2D *image2D, Signals *sig, char *INPUT, Font *font)
+void File(Geometry *geometry, Model *model, Image *image, Texture2D *image2D, Signals *sig, char *INPUT, DATA *data, Font *font)
 {
 	
 	int NewButton = GuiButton((Rectangle) {(float) WIDTH - (geometry->panel_width + geometry->btn_width)/2, geometry->pad_y, geometry->btn_width, geometry->btn_height}, GuiIconText(ICON_FILE_NEW, "[N]ew Project"));
@@ -186,7 +189,7 @@ void File(Geometry *geometry, Model *model, Image *image, Texture2D *image2D, Si
 	{
 		// with saved prompt
 		case 1:
-			newForSave(&sig->new_status, &sig->save, INPUT);
+			newForSave(&sig->new_status, &sig->save, INPUT, data);
 		// just make new	
 		case 2:
 			UnloadModel(*model);
@@ -200,7 +203,7 @@ void File(Geometry *geometry, Model *model, Image *image, Texture2D *image2D, Si
 	if(SaveButton)
 	{
 		sig->save = true;
-		saveWindow(&sig->save, INPUT);
+		saveWindow(&sig->save, INPUT, data);
 	}
 
 	int InfoButton = GuiButton((Rectangle) {(float) WIDTH - (geometry->panel_width + geometry->btn_width)/2, (geometry->pad_y)*3, geometry->btn_width, geometry->btn_height}, GuiIconText(ICON_INFO, "[I]nfo"));

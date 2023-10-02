@@ -301,7 +301,7 @@ int main(void)
 				if(file_status)
 				{
 					GuiWindowBox(PanelBox, "FILE");
-					File(&geo, &model, &image, &image2D, &sig, data_file, &font);
+					File(&geo, &model, &image, &image2D, &sig, data_file, &data, &font);
 					break;
 				}
 				else break;
@@ -390,9 +390,9 @@ int main(void)
 
 		if(HelpButton) panel_state = 4;
 
-		if(sig.new_status) newForSave(&sig.new_status, &sig.save, data_file);
+		if(sig.new_status) newForSave(&sig.new_status, &sig.save, data_file, &data);
 			// save window
-		if(sig.save) saveWindow(&sig.save, data_file);
+		if(sig.save) saveWindow(&sig.save, data_file, &data);
 			// info window
 		if(sig.info_status) infoWindow(&sig.info_status);
 			// help window

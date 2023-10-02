@@ -85,15 +85,15 @@ int import_error_window(int *status);
 
 void importWindow(GuiFileDialogState *import_state, Model *model, char *model_name, char *name, int *message);
 
-int newForSave(int *new_status, bool *status, char *INPUT);
+int newForSave(int *new_status, bool *status, char *INPUT, DATA *data);
 	
 int infoWindow(int *info_status);
 	
 int helpWindow(int *message, Font *font);
 
-int saveWindow(bool *state, char *INPUT);
+int saveWindow(bool *state, char *INPUT, DATA *data);
 
-void File(Geometry *geometry, Model *model, Image *image, Texture2D *image2D, Signals *sig, char *INPUT, Font *font);
+void File(Geometry *geometry, Model *model, Image *image, Texture2D *image2D, Signals *sig, char *INPUT, DATA *data, Font *font);
 
 int Radar_Group(Radar *radar, Geometry *geometry);
 
