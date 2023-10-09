@@ -9,7 +9,6 @@
 #include <float.h>
 
 #define _CRT_SECURE_NO_WARNINGS_
-
 #ifdef _WIN32
 	#define PLATFORM "win32"
 #elif _WIN64
@@ -28,6 +27,9 @@ int main(void)
 	InitWindow(WIDTH, HEIGHT, "SPECTRON");
 	// program set
 		// status for windows & objects
+	// flags
+	SetConfigFlags(FLAG_VSYNC_HINT);
+	// 
 	Signals sig;
 	sig.import_message = 0;
 	sig.save = 0;
@@ -164,7 +166,7 @@ int main(void)
 		
 		radar.lambda = freq2wave(&radar);
 
-		// key shot cuts check
+		// key short cuts check
 			// Exit <ESC>
 		if(IsKeyDown(KEY_ESCAPE))
 		{
@@ -181,11 +183,12 @@ int main(void)
 		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_G)) vis.grid = !vis.grid;
 			// info window enable/disable <Ctrl + I>
 		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_I)) sig.info_status = !sig.info_status;
+			// new project (clear) <Ctrl + N>
+		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_N)) sig.new_status = !sig.new_status;
 			// save data <Ctrl + S>
 		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) sig.save = !sig.save;
 			// help <Ctrl + H>
 		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_H)) sig.message_status = !sig.message_status;
-		if(IsKeyDown(KEY_Q) || IsKeyDown(KEY_E)) NULL;
 
 		UpdateCamera(&camera, cam_mode);
 		camera.target = zero_position;	
@@ -218,6 +221,8 @@ int main(void)
 		BeginMode3D(camera);
 		if(IsModelReady(model))	
 		{
+	
+
 			BoundingBox boundingBox = GetModelBoundingBox(model);
 			if(vis.model)
 			{
@@ -390,7 +395,7 @@ int main(void)
 
 		if(HelpButton) panel_state = 4;
 
-		if(sig.new_status) newForSave(&sig.new_status, &sig.save, data_file, &data);
+		if(sig.new_status) newForSave(&sig.new_status, &sig.save, data_file, &data, &model);
 			// save window
 		if(sig.save) saveWindow(&sig.save, data_file, &data);
 			// info window

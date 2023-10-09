@@ -45,7 +45,7 @@ void PolarChart(DATA *data)
 
 	for(size_t i = 1; i < items; ++i)
 	{
-		if( (radius*i <= flow/2) && ((i % 5) == 0) ) DrawRing((Vector2){flow/2+pos_x, flow/2+pos_y}, (i+1)*radius,(i+1)*radius+1, 0, 360, 360, BLACK);
+		if( (radius*(int)i <= flow/2) && ((i % 5) == 0) ) DrawRing((Vector2){flow/2+pos_x, flow/2+pos_y}, (i+1)*radius,(i+1)*radius+1, 0, 360, 360, BLACK);
 
 		DrawLineEx((Vector2){f*data->y[i-1]*cos(data->x[i-1]*PI/180)+pos_x+flow/2,
 			 -f*data->y[i-1]*sin(data->x[i-1]*PI/180)+pos_y+flow/2},

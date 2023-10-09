@@ -85,7 +85,7 @@ int import_error_window(int *status);
 
 void importWindow(GuiFileDialogState *import_state, Model *model, char *model_name, char *name, int *message);
 
-int newForSave(int *new_status, bool *status, char *INPUT, DATA *data);
+int newForSave(int *new_status, bool *status, char *INPUT, DATA *data, Model *model);
 	
 int infoWindow(int *info_status);
 	

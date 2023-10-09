@@ -2,7 +2,6 @@
 #include "chart_maker.h"
 #include <stdbool.h>
 #include <sys/stat.h>
-#include <unistd.h>
 #include <errno.h>
 
 #include "raylib_binaries/raylib/src/raylib.h"
@@ -21,6 +20,7 @@
 	#define PLATFORM "win64"
 	#define MKDIR(x) mkdir(x)
 #elif __linux__
+	#include <unistd.h>
 	#define PLATFORM "linux"
 	#define MKDIR(x) mkdir(x, 0777)
 #endif
@@ -64,7 +64,7 @@ void importWindow(GuiFileDialogState *import_state, Model *model, char *model_na
 }
 
 // window for asking to save unsaved data
-int newForSave(int *new_status, bool *status, char *INPUT, DATA *data)
+int newForSave(int *new_status, bool *status, char *INPUT, DATA *data, Model *model)
 {	
 	GuiUnlock();
 	*new_status = 1;
@@ -77,9 +77,16 @@ int newForSave(int *new_status, bool *status, char *INPUT, DATA *data)
 		*status = true;
 		*new_status = 0;
 		saveWindow(status, INPUT, data);
+		UnloadModel(*model);
+		*model = (Model){0};
+
 	}
-	else if(gui == 0 || gui == 2) *new_status = 0;
-	else *new_status = 1;
+	else if(gui == 0 || gui == 2)
+	{
+		*new_status = 0;
+		UnloadModel(*model);
+		*model = (Model){0};
+	}
 
 	GuiLock();
 
@@ -154,16 +161,26 @@ int saveWindow(bool *state, char *INPUT, DATA *data)
 
 			char file_name[1024];
 			snprintf(file_name, 1024, "%s/%s.txt", INPUT, INPUT);
+
 			FILE *file = fopen(file_name, "w");
 			for(size_t i = 0; i < sizeof(data->x)/sizeof(data->x[0]); ++i)
 			{
-				fprintf(file, "%lf\t%lf\n", data->x[i], data->y[i]);
+				fprintf(file, "%zu)\t%lf\t%lf\t%lf\t%lf\n", i+1, data->x[i], data->y[i], data->y[i]*cos(data->x[i]*PI/180), data->y[i]*sin(data->x[i]*PI/180));
 			}
 			fclose(file);
 		}
 		else if(!(strcmp("win32", PLATFORM) || strcmp("win64", PLATFORM)))
 		{
 			MKDIR(INPUT);
+			char file_name[1024];
+			snprintf(file_name, 1024, "%s/%s.txt", INPUT, INPUT);
+			FILE *file = fopen(file_name, "w");
+			for(size_t i = 0; i < sizeof(data->x)/sizeof(data->x[0]); ++i)
+			{
+				fprintf(file, "%lf\t%lf\n", data->x[i], data->y[i]);
+			}
+			fclose(file);
+
 		}
 		else exit(1);
 
@@ -185,17 +202,9 @@ void File(Geometry *geometry, Model *model, Image *image, Texture2D *image2D, Si
 	
 	int NewButton = GuiButton((Rectangle) {(float) WIDTH - (geometry->panel_width + geometry->btn_width)/2, geometry->pad_y, geometry->btn_width, geometry->btn_height}, GuiIconText(ICON_FILE_NEW, "[N]ew Project"));
 	
-	switch(NewButton)
+	if(NewButton)
 	{
-		// with saved prompt
-		case 1:
-			newForSave(&sig->new_status, &sig->save, INPUT, data);
-		// just make new	
-		case 2:
-			UnloadModel(*model);
-			UnloadTexture(*image2D);
-			UnloadImage(*image);
-			break;
+		newForSave(&sig->new_status, &sig->save, INPUT, data, model);
 	}
 
 	int SaveButton = GuiButton((Rectangle) {(float) WIDTH - (geometry->panel_width + geometry->btn_width)/2, (geometry->pad_y)*2, geometry->btn_width, geometry->btn_height}, GuiIconText(ICON_FILE_SAVE, "[S]ave Data"));
