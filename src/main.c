@@ -15,6 +15,7 @@
 	#define PLATFORM "win64"
 #elif __linux__
 	#define PLATFORM "linux"
+	#include <dlfcn.h>
 #endif
 
 #define WIDTH  GetScreenWidth()
@@ -24,6 +25,7 @@
 // SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics
 int main(void)
 {
+	dlopen("raylib_binaries/raylib/src/", RTLD_LAZY);
 	InitWindow(WIDTH, HEIGHT, "SPECTRON");
 	// program set
 		// status for windows & objects
