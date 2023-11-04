@@ -2,7 +2,7 @@
 
 ## Introduction
 
-SPECTRON is a program for measuring the RCS (Radar Cross Section) of physical objects (named targets). It is project for master degree. THe main porpose is to analize & visiual data in dynamic enviroment. 
+SPECTRON is a program for measuring the RCS (Radar Cross Section) of physical objects (named targets). It is project for master degree. The main porpose is to analize & visiual data in dynamic enviroment. 
 
 ## Software
 
