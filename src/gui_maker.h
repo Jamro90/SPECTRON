@@ -63,6 +63,7 @@ typedef struct{
 	bool radar;
 	bool grid;
 	bool plot;
+	bool wave;
 }VIS;
 
 typedef struct{
@@ -93,7 +94,7 @@ int helpWindow(int *message, Font *font);
 
 int saveWindow(bool *state, char *INPUT, DATA *data);
 
-void File(Geometry *geometry, Model *model, Image *image, Texture2D *image2D, Signals *sig, char *INPUT, DATA *data, Font *font);
+void File(Geometry *geometry, Model *model, Signals *sig, char *INPUT, DATA *data, Font *font);
 
 int Radar_Group(Radar *radar, Geometry *geometry);
 

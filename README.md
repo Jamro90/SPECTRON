@@ -1,4 +1,4 @@
-# SPECTORON - Super Powerfull Engine Computing Tracing Rays Of Numerics
+# SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics
 
 ## Introduction
 

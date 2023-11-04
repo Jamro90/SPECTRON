@@ -101,7 +101,6 @@ int infoWindow(int *status)
 	Rectangle window = {(float) WIDTH/4, (float) HEIGHT/4, (float) WIDTH/2, (float) HEIGHT/2};
 	DrawRectangle(0, 0, WIDTH, HEIGHT, Fade(RAYWHITE, 0.8f));
 	int gui = GuiMessageBox(window, GuiIconText(ICON_FILETYPE_INFO, "INFO"), "Properieties", "Ok");
-	
 	if((gui == 0) || (gui == 1)) *status = 0;
 	GuiLock();
 	return gui;
@@ -139,6 +138,12 @@ int helpWindow(int *message, Font *font)
 
 	DrawTextEx(*font, TextFormat("\t\tToggle camera mode"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 280}, 20, 0, BLACK);
 	DrawTextEx(*font, "<Ctrl + Y>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 280}, 20, 0, BLACK);
+	
+	DrawTextEx(*font, "For more instructions check the link ----->", (Vector2){WIDTH/4 + 10, HEIGHT/4 + 310}, 20, 0, BLACK);
+
+	int link = GuiButton((Rectangle) {WIDTH/4 + 450, HEIGHT/4 + 300, 150, 40}, GuiIconText(ICON_NOTEBOOK, "Manual link"));
+
+	if(link) OpenURL("https://github.com/Jamro90/SPECTRON"); 
 
 	if((gui == 0) || (gui == 1)) *message = 0;
 	GuiLock();
@@ -197,7 +202,7 @@ int saveWindow(bool *state, char *INPUT, DATA *data)
 }
 
 // File panel
-void File(Geometry *geometry, Model *model, Image *image, Texture2D *image2D, Signals *sig, char *INPUT, DATA *data, Font *font)
+void File(Geometry *geometry, Model *model, Signals *sig, char *INPUT, DATA *data, Font *font)
 {
 	
 	int NewButton = GuiButton((Rectangle) {(float) WIDTH - (geometry->panel_width + geometry->btn_width)/2, geometry->pad_y, geometry->btn_width, geometry->btn_height}, GuiIconText(ICON_FILE_NEW, "[N]ew Project"));
@@ -223,8 +228,6 @@ void File(Geometry *geometry, Model *model, Image *image, Texture2D *image2D, Si
 	
 	if(ExitButton)
 	{
-		UnloadImage(*image);
-		UnloadTexture(*image2D);
 		UnloadModel(*model);
 		UnloadFont(*font);
 		CloseWindow();

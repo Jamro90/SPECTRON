@@ -1,12 +1,11 @@
 #include "raylib_binaries/raygui/src/raygui.h"
 #include "gui_maker.h"
 #include "calc.h"
-//#include "chart_maker.h"
 #include <math.h>
 #include <stdio.h>
-#include <time.h> // only for <test>
 #include <stdlib.h>
 #include <float.h>
+#include <rcamera.h>
 
 #define _CRT_SECURE_NO_WARNINGS_
 #ifdef _WIN32
@@ -16,6 +15,10 @@
 #elif __linux__
 	#define PLATFORM "linux"
 #endif
+
+// Raylib Camera definitions
+#define PLAYER_MOVEMENT_SENSITIVITY 0.0f
+#define CAMERA_ROTATION_SPEED	    0.03f
 
 #define WIDTH  GetScreenWidth()
 #define HEIGHT GetScreenHeight()
@@ -29,6 +32,7 @@ int main(void)
 		// status for windows & objects
 	// flags
 	SetConfigFlags(FLAG_VSYNC_HINT);
+	SetConfigFlags(FLAG_MSAA_4X_HINT);
 	// 
 	Signals sig;
 	sig.import_message = 0;
@@ -50,6 +54,7 @@ int main(void)
 	vis.radar = false;
 	vis.grid = false;
 	vis.plot = false;
+	vis.wave = false;
 	
 	int panel_state = 0;
 	int material_combo = 0;
@@ -109,10 +114,11 @@ int main(void)
 	GuiFileDialogState import_state = InitGuiFileDialog(GetWorkingDirectory());	
 	bool import_btn = false;
 	Model model = {0};
-	char model_name[512];
-	char name[512] = "File name";
+	char model_name[2048];
+	char name[2048] = "File name";
 	float model_scale = 1.0f;
 
+	BoundingBox boundingBox = {0};
 		//gizmo settings
 	Gizmo gizmo;
 	gizmo.x = 0;
@@ -138,9 +144,6 @@ int main(void)
 	// FPS set
 	SetTargetFPS(60);
 
-	// memory for image to plot conversion
-	Image image;
-	Texture2D image2D;
 	const char *font_name = "Roboto_font/RobotoMonoNerdFont-Regular.ttf";
 	Font font = LoadFont(font_name);
 
@@ -160,20 +163,19 @@ int main(void)
 	{
 		if(sig.import_message || sig.save || sig.message_status || sig.info_status || sig.new_status) GuiLock();
 		else GuiUnlock();
-			// image to plot
-	//	image = LoadImage("general.png");
-	//	image2D = LoadTextureFromImage(image);
 		
 		radar.lambda = freq2wave(&radar);
-
+		
 		// key short cuts check
+		// Camera RotationControl <fixing raylib implementation>
+		if (IsKeyDown(KEY_Q)) CameraRoll(&camera, CAMERA_ROTATION_SPEED); 
+		if (IsKeyDown(KEY_E)) CameraRoll(&camera, -CAMERA_ROTATION_SPEED);
+
 			// Exit <ESC>
 		if(IsKeyDown(KEY_ESCAPE))
 		{
 			WindowShouldClose();
 			UnloadModel(model);
-			UnloadImage(image);
-			UnloadTexture(image2D);	
 			UnloadFont(font);
 			exit(0);
 		}
@@ -189,6 +191,7 @@ int main(void)
 		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) sig.save = !sig.save;
 			// help <Ctrl + H>
 		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_H)) sig.message_status = !sig.message_status;
+		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_W)) vis.wave = !vis.wave;
 
 		UpdateCamera(&camera, cam_mode);
 		camera.target = zero_position;	
@@ -216,14 +219,13 @@ int main(void)
 				// drawing objects
 		BeginDrawing();
 
-			ClearBackground(RAYWHITE);
+		ClearBackground(RAYWHITE);
         			// 3D Mode	
 		BeginMode3D(camera);
 		if(IsModelReady(model))	
 		{
 	
-
-			BoundingBox boundingBox = GetModelBoundingBox(model);
+			boundingBox = GetModelBoundingBox(model);
 			if(vis.model)
 			{
 				DrawModel(model, zero_position, model_scale, GRAY);
@@ -253,14 +255,19 @@ int main(void)
 			{
 						//DrawSphere((Vector3) {x, y, z}, 1.0, BLUE);	
 				DrawCylinderEx(	(Vector3){radar.x, radar.y, radar.z}, 
-						(Vector3){radar.x*1.5,//*cos(radar.azymuth * PI/180),
-							  radar.y*1.5,//*sin(radar.azymuth * PI/180),
-							  radar.z*1.5},//*sin(radar.elevation * PI/180)},
-						0, gizmo.cylinder_d, gizmo.segments, 
+						(Vector3){(radar.x+1)*cos(radar.azymuth * PI/180),
+							  (radar.y+1)*sin(radar.azymuth * PI/180),
+							  (radar.z+1)*sin(radar.elevation * PI/180)},
+						0, gizmo.cylinder_d, gizmo.segments,
 						(Color){0x10, 0x4F, 0xCC, 0x55});
 			}
+			if(vis.wave)
+			{
+				DrawCube((Vector3){boundingBox.min.x , boundingBox.min.y , boundingBox.min.z }, 100, 100, 1, (Color){0, 100, 100, 125});
+			}
 			// grid draw
-			if(vis.grid) DrawGrid(grid_count, grid_res);
+			if(vis.grid && IsModelReady(model)) DrawGrid(2, 10);
+			else if(vis.grid) DrawGrid(grid_count, grid_res);
 
 			// draw gizmo
 			if(vis.gizmo)
@@ -306,7 +313,7 @@ int main(void)
 				if(file_status)
 				{
 					GuiWindowBox(PanelBox, "FILE");
-					File(&geo, &model, &image, &image2D, &sig, data_file, &data, &font);
+					File(&geo, &model, &sig, data_file, &data, &font);
 					break;
 				}
 				else break;
@@ -419,13 +426,10 @@ int main(void)
 
 		
 		EndDrawing();
+		DrawFPS(10, HEIGHT-20);
 	
-		UnloadTexture(image2D);	
-		UnloadImage(image);
 		}
 
-	UnloadTexture(image2D);	
-	UnloadImage(image);
 	UnloadFont(font);
 	// program cleaning
 	UnloadModel(model);
