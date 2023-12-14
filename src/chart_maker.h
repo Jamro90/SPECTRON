@@ -4,19 +4,16 @@
 #include <stdio.h>
 #include "chart_maker.h"
 
-typedef struct{
-	double x[1024];
-	double y[1024];
-	double x_max;
-	double x_min;
-	double y_max;
-	double y_min;
-}DATA;
+#include "structs.h"
 
-void DataCounter(DATA *data);
+int DataCounter(DATA *data, Model *model, Radar *radar, float *progress);
+
+void DrawCharts(DATA *data);
 
 void PolarChart(DATA *data);
 
 void PowerChart(DATA *data);
+
+void Reflection(Ray *ray, Model *model);
 
 #endif // CHART_MAKER

@@ -4,8 +4,10 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <float.h>
 #include <rcamera.h>
+#include <string.h>
 
 #define _CRT_SECURE_NO_WARNINGS_
 #ifdef _WIN32
@@ -13,16 +15,18 @@
 #elif _WIN64
 	#define PLATFORM "win64"
 #elif __linux__
-	#define PLATFORM "linux"
+	// at the time only POSIX threading 
+	#include <pthread.h>
+	#include <unistd.h>
 #endif
 
 // Raylib Camera definitions
-#define PLAYER_MOVEMENT_SENSITIVITY 0.0f
-#define CAMERA_ROTATION_SPEED	    0.03f
+#define PLAYER_MOVEMENT_SENSITIVITY	0.0f
+#define CAMERA_ROTATION_SPEED		0.03f
 
-#define WIDTH  GetScreenWidth()
-#define HEIGHT GetScreenHeight()
-#define LIGHT  300000
+#define WIDTH				GetScreenWidth()
+#define HEIGHT				GetScreenHeight()
+#define LIGHT				300000
 
 // SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics
 int main(void)
@@ -40,6 +44,7 @@ int main(void)
 	sig.message_status = 0 ;
 	sig.info_status = 0;
 	sig.new_status = 0;
+	sig.loop_hole = true;
 
 	bool file_status = false;
 	bool view_status = false;
@@ -55,6 +60,7 @@ int main(void)
 	vis.grid = false;
 	vis.plot = false;
 	vis.wave = false;
+	vis.progress = false;
 	
 	int panel_state = 0;
 	int material_combo = 0;
@@ -144,23 +150,39 @@ int main(void)
 	// FPS set
 	SetTargetFPS(60);
 
-	const char *font_name = "Roboto_font/RobotoMonoNerdFont-Regular.ttf";
-	Font font = LoadFont(font_name);
+	// data setting
+	DATA data = {0};
+	data.x_max = 0;
+	data.x_min = 360;
 
-	DATA data;
+	float progress = 0.0f;
 
-	data.x_max = DBL_MIN;
-	data.x_min = DBL_MAX;
+	Image imag = {0};
+	Image plot_polar = {0};
+	Image plot_chart = {0};
 
-	for(size_t i = 0; i < sizeof(data.x)/sizeof(data.x[0]); ++i)
+	for(uint16_t i = 0; i < sizeof(data.x)/sizeof(data.x[0]); ++i)
 	{
-		data.x[i] = 360*i/(sizeof(data.x)/sizeof(data.x[0]));
-		if(data.x[i] < data.x_min) data.x_min = data.x[i];
-		if(data.x[i] > data.x_max) data.x_max = data.x[i];
+		float dist = 30;
+		data.x[i] = 360*i/sizeof(data.x)/sizeof(data.x[0]);
+		for(uint16_t j = 0; j < 360; ++j)
+		{
+			float x = dist * sin(j*PI/180);
+			for(uint16_t k = 0; k < 360; ++k)
+			{
+				float y = dist * cos(j*PI/180) * cos(k*PI/180);
+				float z = dist * sin(k*PI/180) * cos(j*PI/180);
+				Vector3 start = {x, y, z};
+				Vector3 direction = {-x, -y, -z};
+				data.list_of_rays[i] = (Ray){start, direction};
+			}
+		}
 	}
+
 	// main loop
-	while(!WindowShouldClose())
+	while(!WindowShouldClose() && sig.loop_hole)
 	{
+			
 		if(sig.import_message || sig.save || sig.message_status || sig.info_status || sig.new_status) GuiLock();
 		else GuiUnlock();
 		
@@ -171,36 +193,43 @@ int main(void)
 		if (IsKeyDown(KEY_Q)) CameraRoll(&camera, CAMERA_ROTATION_SPEED); 
 		if (IsKeyDown(KEY_E)) CameraRoll(&camera, -CAMERA_ROTATION_SPEED);
 
+		// shortcuts
 			// Exit <ESC>
-		if(IsKeyDown(KEY_ESCAPE))
-		{
-			WindowShouldClose();
-			UnloadModel(model);
-			UnloadFont(font);
-			exit(0);
-		}
-			// plot visibility <Ctrl + P>
-		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_P)) vis.plot = !vis.plot;     
-			// grid enable/disable  <Ctrl + G>
-		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_G)) vis.grid = !vis.grid;
-			// info window enable/disable <Ctrl + I>
-		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_I)) sig.info_status = !sig.info_status;
-			// new project (clear) <Ctrl + N>
+		if(IsKeyDown(KEY_ESCAPE)) sig.loop_hole = false;	
+			// new project <CTRL + N>
 		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_N)) sig.new_status = !sig.new_status;
-			// save data <Ctrl + S>
+			// save data <CTRL + S>
 		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) sig.save = !sig.save;
-			// help <Ctrl + H>
+			// info window <CTRL + I>
+		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_I)) sig.info_status = !sig.info_status;
+			// help window <CTRL + H>
 		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_H)) sig.message_status = !sig.message_status;
-		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_W)) vis.wave = !vis.wave;
+			// show/hide plots
+		if(IsKeyPressed(KEY_P)) vis.plot = !vis.plot;
+			// show/hide radar 
+		if(IsKeyPressed(KEY_R)) vis.radar = !vis.radar;
+			// show/hide grid 
+		if(IsKeyPressed(KEY_G)) vis.grid = !vis.grid;
+			// show/hide gizmo 
+		if(IsKeyPressed(KEY_J)) vis.gizmo = !vis.gizmo;
+			// show/hide boundingbox 
+		if(IsKeyPressed(KEY_B)) vis.box = !vis.box;
+			// show/hide model 
+		if(IsKeyPressed(KEY_M)) vis.model = !vis.model;
+			// show/hide plane wave
+		if(IsKeyPressed(KEY_W)) vis.wave = !vis.wave;
+		
+		if(IsKeyPressed(KEY_T)) vis.progress = !vis.progress;
 
-		UpdateCamera(&camera, cam_mode);
 		camera.target = zero_position;	
 			
 		// camera position/mode update
+		UpdateCamera(&camera, cam_mode);
 		if((IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) || (GetMouseWheelMove() != 0)) 
 		{
 
 			Polar2Cartesian(&cam.x, &cam.y, &cam.z, &cam.distance, &cam.azymuth, &cam.elevation);
+
 			cam.x = camera.position.x;
 			cam.y = camera.position.y;
 			cam.z = camera.position.z;
@@ -215,7 +244,7 @@ int main(void)
 			camera.position.y = cam.y;
 			camera.position.z = cam.z;
 		}
-
+		
 				// drawing objects
 		BeginDrawing();
 
@@ -224,7 +253,6 @@ int main(void)
 		BeginMode3D(camera);
 		if(IsModelReady(model))	
 		{
-	
 			boundingBox = GetModelBoundingBox(model);
 			if(vis.model)
 			{
@@ -236,7 +264,7 @@ int main(void)
 			{
 				DrawBoundingBox(boundingBox, DARKBROWN);
 			}
-
+		
 			// gizmo lock in corrner of model
 			gizmo.x = boundingBox.min.x;
 			gizmo.y = boundingBox.min.y;
@@ -289,22 +317,24 @@ int main(void)
 				DrawCylinderWiresEx(gizmo.endBlue, (Vector3) {gizmo.x, gizmo.y, gizmo.cone_h + gizmo.z}, gizmo.cone_d, 0.0f, 0, BLACK);
 			}
 
-		EndMode3D();
+		if(IsModelReady(model) && IsKeyDown(KEY_O)) DataCounter(&data, &model, &radar, &progress);
 
-		DataCounter(&data);
 
-		if(vis.plot)
+				EndMode3D();
+
+		//if(vis.progress && IsModelReady(model)) ProBarWindow(&vis.progress, &data, &model, &radar, &progress);
+
+		if(vis.plot && IsImageReady(plot_chart) && IsImageReady(plot_chart))
 		{
-			PowerChart(&data); 
-			PolarChart(&data);
+			DrawCharts(&data);
 		}
 
 			// Title Text
-			DrawText("SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics", 10.0f, 10.0f, 10, BLACK); 
-			int FileButton = GuiButton(FileBox, "File");
-			int ViewButton = GuiButton(ViewBox, "View");
-			int ToolsButton = GuiButton(ToolsBox, "Tools");
-			int HelpButton = GuiButton(HelpBox, "Help");
+		DrawText("SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics", 10.0f, 10.0f, 10, BLACK); 
+		int FileButton = GuiButton(FileBox, "File");
+		int ViewButton = GuiButton(ViewBox, "View");
+		int ToolsButton = GuiButton(ToolsBox, "Tools");
+		int HelpButton = GuiButton(HelpBox, "Help");
 
 			// GUI programing
 			switch(panel_state)
@@ -313,7 +343,7 @@ int main(void)
 				if(file_status)
 				{
 					GuiWindowBox(PanelBox, "FILE");
-					File(&geo, &model, &sig, data_file, &data, &font);
+					File(&geo, &model, &sig, data_file, &data);
 					break;
 				}
 				else break;
@@ -359,7 +389,7 @@ int main(void)
 					{
 						DrawRectangle(0.0f, 0.0f, (float) WIDTH, (float) HEIGHT, Fade(GRAY, 0.8f));
 					}
-					importWindow(&import_state, &model, model_name, name, &sig.import_message);
+					importWindow(&import_state, &model, model_name, name, &sig.import_message, &data);
 					GuiFileDialog(&import_state);
 
 					break;
@@ -408,7 +438,7 @@ int main(void)
 			// info window
 		if(sig.info_status) infoWindow(&sig.info_status);
 			// help window
-		if(sig.message_status) helpWindow(&sig.message_status, &font);
+		if(sig.message_status) helpWindow(&sig.message_status);
 			// invalid model import handler
 		if(sig.import_message) import_error_window(&sig.import_message);
 		
@@ -423,14 +453,29 @@ int main(void)
 			cam.azymuth = radar.azymuth;
 			cam.elevation = radar.elevation;
 		}
-
 		
-		EndDrawing();
 		DrawFPS(10, HEIGHT-20);
-	
-		}
+		EndDrawing();
 
-	UnloadFont(font);
+		imag = LoadImageFromScreen();
+		plot_polar = ImageFromImage(imag, (Rectangle) {90, HEIGHT/20 - 30, 470, HEIGHT/2-50});
+		plot_chart = ImageFromImage(imag, (Rectangle) {0, HEIGHT/2 - 30, 580, 530});
+
+		if(sig.save && (saveWindow(&sig.save, data_file, &data) == 1))
+		{
+			char file_name[1024];
+			snprintf(file_name, 1024, "%s/polar.png", data_file);
+			ExportImage(plot_polar, file_name);
+			snprintf(file_name, 1024, "%s/chart.png", data_file);
+			ExportImage(plot_chart, file_name);
+		}
+	
+		UnloadImage(imag);
+		UnloadImage(plot_polar);
+		UnloadImage(plot_chart);
+
+	} // while true
+	//
 	// program cleaning
 	UnloadModel(model);
 	CloseWindow();

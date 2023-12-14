@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <stdint.h>
 
 #include "raylib_binaries/raylib/src/raylib.h"
 #define RAYGUI_IMPLEMENTATION
@@ -28,6 +29,25 @@
 #define WIDTH  GetScreenWidth()
 #define HEIGHT GetScreenHeight()
 
+void *sig_signals(void *arg)
+{
+	Signals *sig = arg;
+
+	// new project (clear) <Ctrl + N>
+	if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_N)) sig->new_status = !sig->new_status;
+
+	// save data <Ctrl + S>
+	if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) sig->save = !sig->save;
+
+	// info window enabel/disable visibility <Ctrl + I>
+	if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_I)) sig->info_status = !sig->info_status;
+
+	// help <Ctrl + H>
+	if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_H)) sig->message_status = !sig->message_status;
+
+	return NULL;
+}
+
 int import_error_window(int *status)
 {
 	GuiUnlock();
@@ -40,7 +60,7 @@ int import_error_window(int *status)
 	return gui;
 }
 
-void importWindow(GuiFileDialogState *import_state, Model *model, char *model_name, char *name, int *message)
+void importWindow(GuiFileDialogState *import_state, Model *model, char *model_name, char *name, int *message, DATA *data)
 {
 	GuiUnlock();
 	if(import_state->SelectFilePressed)
@@ -58,6 +78,7 @@ void importWindow(GuiFileDialogState *import_state, Model *model, char *model_na
 			*message = 1;
 			import_error_window(message);
 		}
+		data->make = true;
 		import_state->SelectFilePressed = false;
 		GuiUnlock();
 	}
@@ -106,7 +127,7 @@ int infoWindow(int *status)
 	return gui;
 }
 // HELP window properities
-int helpWindow(int *message, Font *font)
+int helpWindow(int *message) 
 {
 	GuiUnlock();
 	Rectangle window = {(float) WIDTH/4, (float) HEIGHT/4, (float) WIDTH/2, (float) HEIGHT/2};
@@ -114,32 +135,32 @@ int helpWindow(int *message, Font *font)
 	int gui = GuiMessageBox(window, GuiIconText(ICON_HELP, "HELP"), NULL, "Ok");
 
 // Text section
-	DrawTextEx(*font, "Short cuts keys:", (Vector2){WIDTH/4 + 10, HEIGHT/4 + 40}, 20, 0, BLACK);
+	DrawText("Short cuts keys:", WIDTH/4 + 10, HEIGHT/4 + 40, 20, BLACK);
 
-	DrawTextEx(*font, TextFormat("\t\tNew Project"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 70}, 20, 0, BLACK);
-	DrawTextEx(*font, "<Ctrl + N>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 70}, 20, 0, BLACK);
+	DrawText(TextFormat("\t\tNew Project"), WIDTH/4 + 10, HEIGHT/4 + 70, 20, BLACK);
+	DrawText("<Ctrl + N>", WIDTH/4 + 300, HEIGHT/4 + 70, 20, BLACK);
 
-	DrawTextEx(*font, TextFormat("\t\tSave data"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 100}, 20, 0, BLACK);
-	DrawTextEx(*font, "<Ctrl + S>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 100}, 20, 0, BLACK);
+	DrawText(TextFormat("\t\tSave data"), WIDTH/4 + 10, HEIGHT/4 + 100, 20, BLACK);
+	DrawText("<Ctrl + S>", WIDTH/4 + 300, HEIGHT/4 + 100, 20, BLACK);
 
-	DrawTextEx(*font, TextFormat("\t\tInfo"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 130}, 20, 0, BLACK);
-	DrawTextEx(*font, "<Ctrl + I>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 130}, 20, 0, BLACK);
+	DrawText(TextFormat("\t\tInfo"), WIDTH/4 + 10, HEIGHT/4 + 130, 20, BLACK);
+	DrawText("<Ctrl + I>", WIDTH/4 + 300, HEIGHT/4 + 130, 20, BLACK);
 	
-	DrawTextEx(*font, TextFormat("\t\tExit program"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 160}, 20, 0, BLACK);
-	DrawTextEx(*font, "<ESC>", (Vector2){WIDTH/4 + 320, HEIGHT/4 + 160}, 20, 0, BLACK);
+	DrawText(TextFormat("\t\tExit program"), WIDTH/4 + 10, HEIGHT/4 + 160, 20, BLACK);
+	DrawText("<ESC>", WIDTH/4 + 320, HEIGHT/4 + 160, 20, BLACK);
 	
-	DrawTextEx(*font, TextFormat("\t\tToggle grid"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 190}, 20, 0, BLACK);
-	DrawTextEx(*font, "<Ctrl + G>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 190}, 20, 0, BLACK);
-	DrawTextEx(*font, TextFormat("\t\tShow help"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 220}, 20, 0, BLACK);
-	DrawTextEx(*font, "<Ctrl + H>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 220}, 20, 0, BLACK);
+	DrawText(TextFormat("\t\tToggle grid"), WIDTH/4 + 10, HEIGHT/4 + 190, 20, BLACK);
+	DrawText("<Ctrl + G>", WIDTH/4 + 300, HEIGHT/4 + 190, 20, BLACK);
+	DrawText(TextFormat("\t\tShow help"), WIDTH/4 + 10, HEIGHT/4 + 220, 20, BLACK);
+	DrawText("<Ctrl + H>", WIDTH/4 + 300, HEIGHT/4 + 220, 20, BLACK);
 
-	DrawTextEx(*font, TextFormat("\t\tImport model"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 250}, 20, 0, BLACK);
-	DrawTextEx(*font, "<Ctrl + P>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 250}, 20, 0, BLACK);
+	DrawText(TextFormat("\t\tImport model"), WIDTH/4 + 10, HEIGHT/4 + 250, 20, BLACK);
+	DrawText("<Ctrl + P>", WIDTH/4 + 300, HEIGHT/4 + 250, 20, BLACK);
 
-	DrawTextEx(*font, TextFormat("\t\tToggle camera mode"), (Vector2){WIDTH/4 + 10, HEIGHT/4 + 280}, 20, 0, BLACK);
-	DrawTextEx(*font, "<Ctrl + Y>", (Vector2){WIDTH/4 + 300, HEIGHT/4 + 280}, 20, 0, BLACK);
+	DrawText(TextFormat("\t\tToggle camera mode"), WIDTH/4 + 10, HEIGHT/4 + 280, 20, BLACK);
+	DrawText("<Ctrl + Y>", WIDTH/4 + 300, HEIGHT/4 + 280, 20, BLACK);
 	
-	DrawTextEx(*font, "For more instructions check the link ----->", (Vector2){WIDTH/4 + 10, HEIGHT/4 + 310}, 20, 0, BLACK);
+	DrawText("For more instructions check the link ----->", WIDTH/4 + 10, HEIGHT/4 + 310, 20, BLACK);
 
 	int link = GuiButton((Rectangle) {WIDTH/4 + 450, HEIGHT/4 + 300, 150, 40}, GuiIconText(ICON_NOTEBOOK, "Manual link"));
 
@@ -154,13 +175,12 @@ int helpWindow(int *message, Font *font)
 int saveWindow(bool *state, char *INPUT, DATA *data)
 {
 	GuiUnlock();
-	DrawRectangle(0, 0, WIDTH, HEIGHT, Fade(RAYWHITE, 0.8f));
+	//DrawRectangle(0, 0, WIDTH, HEIGHT, Fade(RAYWHITE, 0.8f));
 	int gui = GuiTextInputBox((Rectangle){(float) WIDTH/2 - 60, (float) HEIGHT/2 - 60, 120.0, 120.0}, GuiIconText(ICON_FILE_SAVE, "Save data"), "File name:", "Save;Cancel", INPUT, 255, NULL);
 	
 	if(gui == 1)
 	{
-		if(!strcmp("linux", PLATFORM))
-		{
+		#if __linux__ // (!strcmp("linux", PLATFORM))
 			//mkdir(INPUT, 0777);
 			MKDIR(INPUT);
 
@@ -168,27 +188,24 @@ int saveWindow(bool *state, char *INPUT, DATA *data)
 			snprintf(file_name, 1024, "%s/%s.txt", INPUT, INPUT);
 
 			FILE *file = fopen(file_name, "w");
-			for(size_t i = 0; i < sizeof(data->x)/sizeof(data->x[0]); ++i)
+			for(uint16_t i = 0; i < sizeof(data->x)/sizeof(data->x[0]); ++i)
 			{
-				fprintf(file, "%zu)\t%lf\t%lf\t%lf\t%lf\n", i+1, data->x[i], data->y[i], data->y[i]*cos(data->x[i]*PI/180), data->y[i]*sin(data->x[i]*PI/180));
+				fprintf(file, "%i)\t%lf\t%lf\t%lf\t%lf\n", i+1, data->x[i], data->y[i], data->y[i]*cos(data->x[i]*PI/180), data->y[i]*sin(data->x[i]*PI/180));
 			}
 			fclose(file);
-		}
-		else if(!(strcmp("win32", PLATFORM) || strcmp("win64", PLATFORM)))
-		{
+
+		#elif _WIN32 || _WIN64 // (!(strcmp("win32", PLATFORM) || strcmp("win64", PLATFORM)))
 			MKDIR(INPUT);
 			char file_name[1024];
 			snprintf(file_name, 1024, "%s/%s.txt", INPUT, INPUT);
 			FILE *file = fopen(file_name, "w");
-			for(size_t i = 0; i < sizeof(data->x)/sizeof(data->x[0]); ++i)
+			for(uint16_t i = 0; i < sizeof(data->x)/sizeof(data->x[0]); ++i)
 			{
 				fprintf(file, "%lf\t%lf\n", data->x[i], data->y[i]);
 			}
 			fclose(file);
 
-		}
-		else exit(1);
-
+		#endif
 		*state = false;
 	}
 	
@@ -202,7 +219,7 @@ int saveWindow(bool *state, char *INPUT, DATA *data)
 }
 
 // File panel
-void File(Geometry *geometry, Model *model, Signals *sig, char *INPUT, DATA *data, Font *font)
+void File(Geometry *geometry, Model *model, Signals *sig, char *INPUT, DATA *data)
 {
 	
 	int NewButton = GuiButton((Rectangle) {(float) WIDTH - (geometry->panel_width + geometry->btn_width)/2, geometry->pad_y, geometry->btn_width, geometry->btn_height}, GuiIconText(ICON_FILE_NEW, "[N]ew Project"));
@@ -228,10 +245,7 @@ void File(Geometry *geometry, Model *model, Signals *sig, char *INPUT, DATA *dat
 	
 	if(ExitButton)
 	{
-		UnloadModel(*model);
-		UnloadFont(*font);
-		CloseWindow();
-		exit(0);
+		sig->loop_hole = false;
 	}
 
 }

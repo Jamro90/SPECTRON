@@ -4,10 +4,8 @@ SRC=main.c gui_maker.c calc.c chart_maker.c
 # Objects for Linux
 OBJ=$(SRC:.c=.o)
 # Flags for Linux
-LFLAGS=-Wextra -Wpedantic -O2 -Wall -std=c99 -ldl -lrt -lraylib -lpthread -g -lm  -Iraylib_binaries/raylib/src -Lraylib_binaries/raylib/src  
-
-WINFLAGS=-lraylib -lgdi32 -lwinmm -static -static-libgcc
-
+LFLAGS=-Wextra -Wpedantic -Ofast -Wall -lraylib -std=c99 -ldl -lrt -lpthread -g -lm
+WINFLAGS=-Wextra -Wpedantic -O2 -Wall -lraylib -lgdi32 -lwinmm -static -static-libgcc
 
 # Declaring rules not target files
 .PHONY: all win32 win64 clean

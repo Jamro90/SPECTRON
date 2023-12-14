@@ -1,8 +1,5 @@
+#include "calc.h"
 #include <stdbool.h>
-
-#include "raylib_binaries/raylib/src/raylib.h"
-
-#include "gui_maker.h"
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -89,12 +86,3 @@ float wave2freq(Radar *radar)
 	return freq; 
 }
 
-// pre-set camera position
-void Camera_PreSet(Camera3D *camera)
-{
-	camera -> position = (Vector3){0.0f, 0.0f, 10.0f};
-	camera -> target = (Vector3){0.0f, 0.0f, 0.0f};	
-	camera -> up = (Vector3){ 0.0f, 1.0f, 0.0f };
-	camera -> fovy = 0.0f;
-	camera -> projection = CAMERA_PERSPECTIVE;
-}
