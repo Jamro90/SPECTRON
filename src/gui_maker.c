@@ -55,7 +55,7 @@ int import_error_window(int *status)
 	Rectangle window = {(float) WIDTH/8, (float) HEIGHT/8, (float) WIDTH/4, (float) HEIGHT/4};
 	int gui = GuiMessageBox(window, GuiIconText(ICON_GEAR_EX, "Invalid model extension!"), TextFormat("%s", "Supported extension: .obj"), "Ok");
 
-	if( (gui == 0) || (gui == 1) ) *status = 0;
+	switch(gui) case 0: case 1: *status = 0;
 	GuiLock();
 	return gui;
 }
@@ -78,7 +78,6 @@ void importWindow(GuiFileDialogState *import_state, Model *model, char *model_na
 			*message = 1;
 			import_error_window(message);
 		}
-		data->make = true;
 		import_state->SelectFilePressed = false;
 		GuiUnlock();
 	}
@@ -93,20 +92,22 @@ int newForSave(int *new_status, bool *status, char *INPUT, DATA *data, Model *mo
 	DrawRectangle(0, 0, WIDTH, HEIGHT, Fade(RAYWHITE, 0.8f));
 	int gui = GuiMessageBox(window, GuiIconText(ICON_WAVE, ""), "Do you want to save?", "Yes;No");
 		
-	if(gui == 1)
+	switch(gui)
 	{
+		case 1:
 		*status = true;
 		*new_status = 0;
 		saveWindow(status, INPUT, data);
 		UnloadModel(*model);
 		*model = (Model){0};
+		break;
 
-	}
-	else if(gui == 0 || gui == 2)
-	{
+		case 0:
+		case 2:
 		*new_status = 0;
 		UnloadModel(*model);
 		*model = (Model){0};
+		break;
 	}
 
 	GuiLock();
@@ -166,7 +167,7 @@ int helpWindow(int *message)
 
 	if(link) OpenURL("https://github.com/Jamro90/SPECTRON"); 
 
-	if((gui == 0) || (gui == 1)) *message = 0;
+	switch(gui) case 0: case 1: *message = 0;
 	GuiLock();
 	return gui;
 }
@@ -177,9 +178,10 @@ int saveWindow(bool *state, char *INPUT, DATA *data)
 	GuiUnlock();
 	//DrawRectangle(0, 0, WIDTH, HEIGHT, Fade(RAYWHITE, 0.8f));
 	int gui = GuiTextInputBox((Rectangle){(float) WIDTH/2 - 60, (float) HEIGHT/2 - 60, 120.0, 120.0}, GuiIconText(ICON_FILE_SAVE, "Save data"), "File name:", "Save;Cancel", INPUT, 255, NULL);
-	
-	if(gui == 1)
+
+	switch(gui)
 	{
+		case 1:
 		#if __linux__ // (!strcmp("linux", PLATFORM))
 			//mkdir(INPUT, 0777);
 			MKDIR(INPUT);
@@ -207,11 +209,11 @@ int saveWindow(bool *state, char *INPUT, DATA *data)
 
 		#endif
 		*state = false;
-	}
-	
-	if((gui == 0) || (gui == 2))
-	{
+		break;
+	case 0:
+	case 2:
 		*state = false;
+		break;
 	}
 
 	GuiLock();
@@ -358,5 +360,40 @@ void Object_Group(bool *import_btn, int *material_combo, Geometry *geometry, cha
 	*material_combo = GuiComboBox((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/3.5, 640.0, geometry->group_width/2, 20.0}, "PEC;Al;Cu", *material_combo);
 
 	*model_scale = GuiSlider((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.4, 680.0, geometry->slider_width, 20.0}, "Scale", TextFormat("%.2f", *model_scale), *model_scale, 0.1, 1);
+
+	return;
+}
+
+void Control_Group(int *sim_btn, float *progress, Geometry *geometry) 
+{
+			// Control
+	GuiGroupBox((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2, 740.0, geometry->group_width, 140.0}, "Control");
+		
+	//GuiLabel((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/2.2, 600.0, geometry->group_width/2, 20.0}, name);
+
+	*sim_btn = GuiButton((Rectangle) {(float) WIDTH - (geometry->group_width + geometry->panel_width)/3.5, 760.0, geometry->group_width/2, 20.0}, "Simulation");
+	
+	return;
+}
+
+// progress bar window 
+int progressWindow(bool *status, float *progress)
+{
+	GuiUnlock();
+	*status = 1;
+	Rectangle window = {(float) WIDTH/8, (float) HEIGHT/8, (float) WIDTH/4, (float) HEIGHT/4};
+	DrawRectangle(0, 0, WIDTH, HEIGHT, Fade(RAYWHITE, 0.8f));
+	int gui = GuiMessageBox(window, GuiIconText(ICON_LIFE_BARS, "Progress..."), "Progress ", "Cancel");
+
+	Rectangle bar = {(float) WIDTH/8 + 10, (float) HEIGHT/8 + 170, (float) WIDTH/4 - 20, 40};
+
+	DrawRectangleRounded((Rectangle){(float) WIDTH/8 + 10, (float) HEIGHT/8 + 170, (float) (WIDTH/4 - 20) * (*progress)/100, 40}, 30, 30, SKYBLUE); //(Color){0xAA, 0x55, 0x88, 0xFF});
+	DrawRectangleRoundedLines(bar, 30, 30, 2, BLACK);
+	DrawText(TextFormat("%d%s", (int) *progress, "%"), 
+	WIDTH/8 - 40 + (MeasureText("100%",15) + WIDTH/4)/2, HEIGHT/8 + 170 + 10, 20, BLACK);
+
+	if((gui == 0) || (gui == 1) || (*progress == 100)) *status = 0;
+	GuiLock();
+	return gui;
 }
 
