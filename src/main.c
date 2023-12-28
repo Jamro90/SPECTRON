@@ -45,7 +45,15 @@ int main(void)
 	sig.info_status = 0;
 	sig.new_status = 0;
 	sig.loop_hole = true;
+	sig.control = 0;
 
+	enum STATE{
+		FILE = 1,
+		VIEW,
+		TOOLS,
+		HELP
+	};
+	
 	bool file_status = false;
 	bool view_status = false;
 	bool tools_status = false;
@@ -100,8 +108,8 @@ int main(void)
 		// camera
 	Cam cam;
 	cam.x = 0;
-	cam.y = -5;
-	cam.z = 5;
+	cam.y = -10;
+	cam.z = 10;
 	cam.distance = 100;
 	cam.azymuth = 100;
 	cam.elevation = 100;
@@ -125,6 +133,8 @@ int main(void)
 	float model_scale = 1.0f;
 
 	BoundingBox boundingBox = {0};
+	bounding bounding = {0};
+
 		//gizmo settings
 	Gizmo gizmo;
 	gizmo.x = 0;
@@ -152,8 +162,11 @@ int main(void)
 
 	// data setting
 	DATA data = {0};
-	data.x_max = 0;
-	data.x_min = 360;
+	data.x_max = 360;
+	data.x_min = 0;
+	data.y_max = DBL_MIN;
+	data.y_min = DBL_MAX;
+	data.iter = 0;
 
 	float progress = 0.0f;
 
@@ -161,22 +174,10 @@ int main(void)
 	Image plot_polar = {0};
 	Image plot_chart = {0};
 
-	for(uint16_t i = 0; i < sizeof(data.x)/sizeof(data.x[0]); ++i)
+	uint16_t items = sizeof(data.x)/sizeof(data.x[0]);
+	for(uint16_t i = 0; i < items; ++i)
 	{
-		float dist = 30;
-		data.x[i] = 360*i/sizeof(data.x)/sizeof(data.x[0]);
-		for(uint16_t j = 0; j < 360; ++j)
-		{
-			float x = dist * sin(j*PI/180);
-			for(uint16_t k = 0; k < 360; ++k)
-			{
-				float y = dist * cos(j*PI/180) * cos(k*PI/180);
-				float z = dist * sin(k*PI/180) * cos(j*PI/180);
-				Vector3 start = {x, y, z};
-				Vector3 direction = {-x, -y, -z};
-				data.list_of_rays[i] = (Ray){start, direction};
-			}
-		}
+		data.x[i] = 360*i/items;
 	}
 
 	// main loop
@@ -219,7 +220,7 @@ int main(void)
 			// show/hide plane wave
 		if(IsKeyPressed(KEY_W)) vis.wave = !vis.wave;
 		
-		if(IsKeyPressed(KEY_T)) vis.progress = !vis.progress;
+		if(IsKeyPressed(KEY_T) || sig.control) vis.progress = !vis.progress;
 
 		camera.target = zero_position;	
 			
@@ -254,6 +255,13 @@ int main(void)
 		if(IsModelReady(model))	
 		{
 			boundingBox = GetModelBoundingBox(model);
+			bounding.x = boundingBox.max.x - boundingBox.min.x;
+			bounding.y = boundingBox.max.y - boundingBox.min.y;
+			bounding.z = boundingBox.max.z - boundingBox.min.z;
+
+			if(bounding.x > bounding.y) bounding.ratio = bounding.x/items;
+			else bounding.ratio = bounding.y/items;
+
 			if(vis.model)
 			{
 				DrawModel(model, zero_position, model_scale, GRAY);
@@ -281,13 +289,15 @@ int main(void)
 
 			if(vis.radar) 
 			{
-						//DrawSphere((Vector3) {x, y, z}, 1.0, BLUE);	
-				DrawCylinderEx(	(Vector3){radar.x, radar.y, radar.z}, 
+				DrawSphere((Vector3) {radar.x, radar.y, radar.z}, 0.5, BLUE);	
+				DrawSphereWires((Vector3) {radar.x, radar.y, radar.z}, 0.5, 20, 20, BLACK);
+				/*DrawCylinderEx(	(Vector3){radar.x, radar.y, radar.z}, 
 						(Vector3){(radar.x+1)*cos(radar.azymuth * PI/180),
 							  (radar.y+1)*sin(radar.azymuth * PI/180),
 							  (radar.z+1)*sin(radar.elevation * PI/180)},
 						0, gizmo.cylinder_d, gizmo.segments,
 						(Color){0x10, 0x4F, 0xCC, 0x55});
+			*/
 			}
 			if(vis.wave)
 			{
@@ -317,17 +327,22 @@ int main(void)
 				DrawCylinderWiresEx(gizmo.endBlue, (Vector3) {gizmo.x, gizmo.y, gizmo.cone_h + gizmo.z}, gizmo.cone_d, 0.0f, 0, BLACK);
 			}
 
-		if(IsModelReady(model) && IsKeyDown(KEY_O)) DataCounter(&data, &model, &radar, &progress);
+		if(IsModelReady(model) && (progress < 100)) DataCounter(&data, &model, &radar, &bounding, &progress);
+		else if(progress == 100) 
+		{
+			data.iter = 0;
+			progress = 0;
+		}
 
 
 				EndMode3D();
-
-		//if(vis.progress && IsModelReady(model)) ProBarWindow(&vis.progress, &data, &model, &radar, &progress);
 
 		if(vis.plot && IsImageReady(plot_chart) && IsImageReady(plot_chart))
 		{
 			DrawCharts(&data);
 		}
+
+		if(vis.progress && IsModelReady(model)) progressWindow(&vis.progress, &progress);
 
 			// Title Text
 		DrawText("SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics", 10.0f, 10.0f, 10, BLACK); 
@@ -339,7 +354,7 @@ int main(void)
 			// GUI programing
 			switch(panel_state)
 			{
-				case 1:
+				case FILE:
 				if(file_status)
 				{
 					GuiWindowBox(PanelBox, "FILE");
@@ -348,7 +363,7 @@ int main(void)
 				}
 				else break;
 
-				case 2:
+				case VIEW:
 				if(view_status)
 				{
 					GuiPanel(PanelBox, "VIEW");
@@ -369,7 +384,7 @@ int main(void)
 				}
 				else break;
 
-				case 3:
+				case TOOLS:
 				if(tools_status)
 				{
 					GuiPanel(PanelBox, "TOOLS");
@@ -379,6 +394,8 @@ int main(void)
 					CamSet = Camera_Group(&cam, &geo);
 					
 					Object_Group(&import_btn, &material_combo, &geo, name, &model_scale);
+
+					Control_Group(&sig.control, &progress, &geo);
 
 					if(import_btn)
 					{
@@ -396,7 +413,7 @@ int main(void)
 				}
 				else break;
 
-				case 4:
+				case HELP:
 					if(HelpButton)
 					{
 						file_status = false;
@@ -411,14 +428,14 @@ int main(void)
 		{
 			view_status = false;
 			tools_status = false;
-			panel_state = 1;
+			panel_state = FILE;
 			file_status = !file_status;
 		}
 		if(ViewButton) 
 		{
 			file_status = false;
 			tools_status = false;
-			panel_state = 2;
+			panel_state = VIEW;
 			view_status = !view_status;
 		}
 
@@ -426,11 +443,11 @@ int main(void)
 		{
 			file_status = false;
 			view_status = false;
-			panel_state = 3;
+			panel_state = TOOLS;
 			tools_status = !tools_status;
 		}
 
-		if(HelpButton) panel_state = 4;
+		if(HelpButton) panel_state = HELP;
 
 		if(sig.new_status) newForSave(&sig.new_status, &sig.save, data_file, &data, &model);
 			// save window
@@ -459,7 +476,7 @@ int main(void)
 
 		imag = LoadImageFromScreen();
 		plot_polar = ImageFromImage(imag, (Rectangle) {90, HEIGHT/20 - 30, 470, HEIGHT/2-50});
-		plot_chart = ImageFromImage(imag, (Rectangle) {0, HEIGHT/2 - 30, 580, 530});
+		plot_chart = ImageFromImage(imag, (Rectangle) {0, HEIGHT/1.9 - 30, 580, 530});
 
 		if(sig.save && (saveWindow(&sig.save, data_file, &data) == 1))
 		{

@@ -12,6 +12,7 @@ typedef struct{
 	int import_message;
 	bool save;
 	bool loop_hole;
+	int control;
 }Signals;
 
 // radar properities
@@ -82,9 +83,19 @@ typedef struct{
 	double x_min;
 	double y_max;
 	double y_min;
-	bool make;
+	int iter;
 	Ray list_of_rays[1024];
 }DATA;
+
+typedef struct{
+	float x;
+	float y;
+	float z;
+	float p_x;
+	float p_y;
+	float p_z;
+	float ratio;
+}bounding;
 
 #endif
 

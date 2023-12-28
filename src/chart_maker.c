@@ -1,38 +1,46 @@
 #include "chart_maker.h"
+#include "calc.h"
 #include <raylib.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdint.h>
-//#include "gui_maker.h"
 #include <float.h>
 #include <raymath.h>
 
 #include "structs.h"
 
-int DataCounter(DATA *data, Model *model, Radar *radar, float *progress)
+void DataCounter(DATA *data, Model *model, Radar *radar, bounding *bound, float *progress)
 {
-
-		data->make = false;
-		data->y_max = DBL_MIN;
-		data->y_min = DBL_MAX;
-		uint16_t items = sizeof(data->x) / sizeof(data->x[0]);
-		
-		float x1 = radar->x;
-		float y1 = radar->y;
-		float z1 = radar->z;
-	for(uint16_t i = 0; i < items; ++i)
+	uint16_t items = sizeof(data->x) / sizeof(data->x[0]);
+	uint16_t row = sqrt(items);
+	if(data->iter <= items)
 	{
-		Ray ray_front = {(Vector3){x1, y1, z1}, (Vector3){-x1, -y1, -z1}};	
-		Ray ray_back = {(Vector3){-x1, -y1, -z1}, (Vector3){x1, y1, z1}};	
-		Reflection(&ray_front, model);
-		Reflection(&ray_back, model);
+		data->iter += 1;
+		*progress = 100 * (float) data->iter/items;
+		
+		if((row % data->iter) == 0)
+		{
+			bound->p_x = 0;
+			bound->p_y += 1;
+		}
+	
+		if(bound->p_x == row/2) bound->p_x += 1;
+
+	
+		float x1 = (bound->ratio * (row/2 - bound->p_x) );
+		float y1 = (bound->ratio * bound->p_y);
+		float z1 = (bound->ratio * bound->z);
+
+		Ray ray_front = {(Vector3){radar->x+2*x1, radar->y+2*y1, radar->z+2*z1}, (Vector3){-radar->x+x1, -radar->y+y1, -radar->z+z1}};	
+		Vector3 result = Reflection(&ray_front, model);
+
 	}
 }
 
 void DrawCharts(DATA *data)
 {
 	int pos_x = 100;
-	int pos_y_power = GetScreenHeight()/2;
+	int pos_y_power = GetScreenHeight()/1.9;
 	int pos_y_polar = GetScreenHeight()/20;
 	int flow = 450;
 	int radius  = 5;
@@ -86,14 +94,14 @@ void DrawCharts(DATA *data)
 
 	// border values
 	DrawText(TextFormat("%.0lf%s", data->x_min, "\u00B0"), pos_x, pos_y_power+flow, font_size, BLACK);
-	DrawText(TextFormat("%.0lf%s", data->x_max, "\u00B0"), pos_x+flow-30, pos_y_power+flow, font_size, BLACK);
+	DrawText(TextFormat("%.0lf%s", data->x_max, "\u00B0"), pos_x+flow-40, pos_y_power+flow, font_size, BLACK);
 	
 	DrawText(TextFormat("%.2lf", data->y_min), pos_x-100, pos_y_power+flow-font_size/2, font_size, BLACK);
 	DrawText(TextFormat("%.2lf", data->y_max), pos_x-100, pos_y_power-15, font_size, BLACK);
 
 }
 
-void Reflection(Ray *ray, Model *model)
+Vector3 Reflection(Ray *ray, Model *model)
 {
 	RayCollision col = GetRayCollisionMesh(*ray, *model->meshes, MatrixIdentity());
 	if(col.hit)
@@ -102,6 +110,17 @@ void Reflection(Ray *ray, Model *model)
 		Vector3 new = Vector3Add(col.point, Vector3Scale(ref, 1));
 		if(IsKeyDown(KEY_K)) DrawLine3D(ray->position, col.point, RED);
 		if(IsKeyDown(KEY_L)) DrawLine3D(new, col.point, GREEN);
-
+	
+		Ray reflect = {col.point, ref};
+		RayCollision sphere = GetRayCollisionSphere(reflect, (Vector3){0, 0, 0}, 100);
+		if(sphere.hit)
+		{	
+			float dist = 0;
+			float azym = 0;
+			float elev = 0;
+			Cartesian2Polar(&sphere.point.x, &sphere.point.y, &sphere.point.z, &dist, &azym, &elev);
+			return (Vector3){dist, azym, elev};
+		}
 	}
+	else return (Vector3){0, 0, 0};
 }

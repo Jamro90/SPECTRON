@@ -36,7 +36,9 @@ int Camera_Group(Cam *cam, Geometry *geometry);
 
 void Object_Group(bool *import_btn, int *material_combo, Geometry *geometry, char *name, float *model_scale);
 
-int ProBarWindow(bool *status, DATA *data, Model *model, Radar *radar, float *progress);
+void Control_Group(int *sim_btn, float *progress, Geometry *geometry);
+
+int progressWindow(bool *status, float *progress);
 
 #endif
 
