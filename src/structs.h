@@ -4,6 +4,8 @@
 #include <raylib.h>
 #include "structs.h"
 
+#define samples 4096
+
 // signals for windows
 typedef struct{
 	int message_status;
@@ -12,7 +14,8 @@ typedef struct{
 	int import_message;
 	bool save;
 	bool loop_hole;
-	int control;
+	bool control;
+	bool error_progress;
 }Signals;
 
 // radar properities
@@ -56,9 +59,11 @@ typedef struct{
 	bool model;
 	bool radar;
 	bool grid;
+	bool fps;
 	bool plot;
 	bool wave;
 	bool progress;
+	bool error_progress;
 }VIS;
 
 typedef struct{
@@ -77,14 +82,17 @@ typedef struct{
 }Gizmo;
 
 typedef struct{
-	double x[1024];
-	double y[1024];
+	double x[samples];
+	double y[samples];
+}point;
+
+typedef struct{
+	point point;
 	double x_max;
 	double x_min;
 	double y_max;
 	double y_min;
 	int iter;
-	Ray list_of_rays[1024];
 }DATA;
 
 typedef struct{
@@ -93,7 +101,6 @@ typedef struct{
 	float z;
 	float p_x;
 	float p_y;
-	float p_z;
 	float ratio;
 }bounding;
 

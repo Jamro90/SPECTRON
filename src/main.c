@@ -23,14 +23,14 @@
 // Raylib Camera definitions
 #define PLAYER_MOVEMENT_SENSITIVITY	0.0f
 #define CAMERA_ROTATION_SPEED		0.03f
+#define CAMERA_MOVE_SPEED		0.0f
 
 #define WIDTH				GetScreenWidth()
 #define HEIGHT				GetScreenHeight()
 #define LIGHT				300000
 
 // SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics
-int main(void)
-{
+int main(void){
 	InitWindow(WIDTH, HEIGHT, "SPECTRON");
 	// program set
 		// status for windows & objects
@@ -45,14 +45,10 @@ int main(void)
 	sig.info_status = 0;
 	sig.new_status = 0;
 	sig.loop_hole = true;
-	sig.control = 0;
+	sig.control = false;
+	sig.error_progress = false;
 
-	enum STATE{
-		FILE = 1,
-		VIEW,
-		TOOLS,
-		HELP
-	};
+	enum STATE{FILE = 1, VIEW, TOOLS, HELP};
 	
 	bool file_status = false;
 	bool view_status = false;
@@ -66,6 +62,7 @@ int main(void)
 	vis.model = true;
 	vis.radar = false;
 	vis.grid = false;
+	vis.fps = false;
 	vis.plot = false;
 	vis.wave = false;
 	vis.progress = false;
@@ -93,9 +90,9 @@ int main(void)
 		// variables for computing cordinates
 		// radar
 	Radar radar;
-	radar.x = 1.0;
-	radar.y = 2.0;
-	radar.z = 2.0;
+	radar.x = 10.0;
+	radar.y = 10.0;
+	radar.z = 0.0;
 	radar.distance = 1;
 	radar.azymuth = 0.0f;
 	radar.elevation = 0.0f;
@@ -133,7 +130,7 @@ int main(void)
 	float model_scale = 1.0f;
 
 	BoundingBox boundingBox = {0};
-	bounding bounding = {0};
+	bounding bound = {0};
 
 		//gizmo settings
 	Gizmo gizmo;
@@ -162,29 +159,27 @@ int main(void)
 
 	// data setting
 	DATA data = {0};
-	data.x_max = 360;
-	data.x_min = 0;
 	data.y_max = DBL_MIN;
 	data.y_min = DBL_MAX;
+	data.x_min = 0.0f;
+	data.x_max = 360.0f;
 	data.iter = 0;
-
+	bool sorted = false;
 	float progress = 0.0f;
 
 	Image imag = {0};
 	Image plot_polar = {0};
 	Image plot_chart = {0};
 
-	uint16_t items = sizeof(data.x)/sizeof(data.x[0]);
-	for(uint16_t i = 0; i < items; ++i)
-	{
-		data.x[i] = 360*i/items;
-	}
+	uint16_t items = sizeof(data.point.x)/sizeof(data.point.x[0]);
 
+	for(uint16_t i = 0; i < items; ++i){
+		data.point.x[i] = i/items * 360;	
+	}
 	// main loop
-	while(!WindowShouldClose() && sig.loop_hole)
-	{
+	while(!WindowShouldClose() && sig.loop_hole){
 			
-		if(sig.import_message || sig.save || sig.message_status || sig.info_status || sig.new_status) GuiLock();
+		if(sig.import_message || sig.save || sig.message_status || sig.info_status || sig.new_status || sig.control) GuiLock();
 		else GuiUnlock();
 		
 		radar.lambda = freq2wave(&radar);
@@ -194,41 +189,45 @@ int main(void)
 		if (IsKeyDown(KEY_Q)) CameraRoll(&camera, CAMERA_ROTATION_SPEED); 
 		if (IsKeyDown(KEY_E)) CameraRoll(&camera, -CAMERA_ROTATION_SPEED);
 
+		if (IsKeyDown(KEY_W)) CameraMoveForward(&camera, CAMERA_MOVE_SPEED, false);
+		if (IsKeyDown(KEY_A)) CameraMoveRight(&camera, -CAMERA_MOVE_SPEED, false);
+		if (IsKeyDown(KEY_S)) CameraMoveForward(&camera, -CAMERA_MOVE_SPEED, false);
+		if (IsKeyDown(KEY_D)) CameraMoveRight(&camera, CAMERA_MOVE_SPEED, false);
+
+		if(!sig.save){
 		// shortcuts
 			// Exit <ESC>
-		if(IsKeyDown(KEY_ESCAPE)) sig.loop_hole = false;	
+			if(IsKeyDown(KEY_ESCAPE)) sig.loop_hole = false;	
 			// new project <CTRL + N>
-		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_N)) sig.new_status = !sig.new_status;
+			if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_N)) sig.new_status = !sig.new_status;
 			// save data <CTRL + S>
-		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) sig.save = !sig.save;
+			if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_S)) sig.save = !sig.save;
 			// info window <CTRL + I>
-		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_I)) sig.info_status = !sig.info_status;
+			if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_I)) sig.info_status = !sig.info_status;
 			// help window <CTRL + H>
-		if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_H)) sig.message_status = !sig.message_status;
+			if(IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_H)) sig.message_status = !sig.message_status;
 			// show/hide plots
-		if(IsKeyPressed(KEY_P)) vis.plot = !vis.plot;
+			if(IsKeyDown(KEY_LEFT_ALT) && IsKeyPressed(KEY_P)) vis.plot = !vis.plot;
+			// show/hide FPS 
+			if(IsKeyDown(KEY_LEFT_ALT) && IsKeyPressed(KEY_C)) vis.fps = !vis.fps;
 			// show/hide radar 
-		if(IsKeyPressed(KEY_R)) vis.radar = !vis.radar;
+			if(IsKeyDown(KEY_LEFT_ALT) && IsKeyPressed(KEY_R)) vis.radar = !vis.radar;
 			// show/hide grid 
-		if(IsKeyPressed(KEY_G)) vis.grid = !vis.grid;
+			if(IsKeyDown(KEY_LEFT_ALT) && IsKeyPressed(KEY_G)) vis.grid = !vis.grid;
 			// show/hide gizmo 
-		if(IsKeyPressed(KEY_J)) vis.gizmo = !vis.gizmo;
+			if(IsKeyDown(KEY_LEFT_ALT) && IsKeyPressed(KEY_J)) vis.gizmo = !vis.gizmo;
 			// show/hide boundingbox 
-		if(IsKeyPressed(KEY_B)) vis.box = !vis.box;
+			if(IsKeyDown(KEY_LEFT_ALT) && IsKeyPressed(KEY_B)) vis.box = !vis.box;
 			// show/hide model 
-		if(IsKeyPressed(KEY_M)) vis.model = !vis.model;
-			// show/hide plane wave
-		if(IsKeyPressed(KEY_W)) vis.wave = !vis.wave;
+			if(IsKeyDown(KEY_LEFT_ALT) && IsKeyPressed(KEY_M)) vis.model = !vis.model;
 		
-		if(IsKeyPressed(KEY_T) || sig.control) vis.progress = !vis.progress;
-
+			if((IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_T)) || sig.control) vis.progress = !vis.progress;
+		}
 		camera.target = zero_position;	
 			
 		// camera position/mode update
 		UpdateCamera(&camera, cam_mode);
-		if((IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) || (GetMouseWheelMove() != 0)) 
-		{
-
+		if((IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)) || (GetMouseWheelMove() != 0)) {
 			Polar2Cartesian(&cam.x, &cam.y, &cam.z, &cam.distance, &cam.azymuth, &cam.elevation);
 
 			cam.x = camera.position.x;
@@ -237,8 +236,7 @@ int main(void)
 
 			Cartesian2Polar(&cam.x, &cam.y, &cam.z, &cam.distance, &cam.azymuth, &cam.elevation);
 		}
-		else
-		{
+		else{
 			if(cam.combo == 0) Cartesian2Polar(&cam.x, &cam.y, &cam.z, &cam.distance, &cam.azymuth, &cam.elevation);
 			else Polar2Cartesian(&cam.x, &cam.y, &cam.z, &cam.distance, &cam.azymuth, &cam.elevation);
 			camera.position.x = cam.x;
@@ -252,26 +250,21 @@ int main(void)
 		ClearBackground(RAYWHITE);
         			// 3D Mode	
 		BeginMode3D(camera);
-		if(IsModelReady(model))	
-		{
+		if(IsModelReady(model)){
 			boundingBox = GetModelBoundingBox(model);
-			bounding.x = boundingBox.max.x - boundingBox.min.x;
-			bounding.y = boundingBox.max.y - boundingBox.min.y;
-			bounding.z = boundingBox.max.z - boundingBox.min.z;
+			bound.x = boundingBox.max.x - boundingBox.min.x;
+			bound.y = boundingBox.max.y - boundingBox.min.y;
+			bound.z = boundingBox.max.z - boundingBox.min.z;
 
-			if(bounding.x > bounding.y) bounding.ratio = bounding.x/items;
-			else bounding.ratio = bounding.y/items;
+			float factor = 100.0f;
+			bound.ratio = factor/items * sqrt(bound.x*bound.x+bound.y*bound.y+bound.z*bound.z);
 
-			if(vis.model)
-			{
+			if(vis.model){
 				DrawModel(model, zero_position, model_scale, GRAY);
 				DrawModelWires(model, zero_position, model_scale, BLACK);
 			}
 
-			if(vis.box)
-			{
-				DrawBoundingBox(boundingBox, DARKBROWN);
-			}
+			if(vis.box) DrawBoundingBox(boundingBox, DARKBROWN);
 		
 			// gizmo lock in corrner of model
 			gizmo.x = boundingBox.min.x;
@@ -287,29 +280,19 @@ int main(void)
 		if(radar.combo == 0) Cartesian2Polar(&radar.x, &radar.y, &radar.z, &radar.distance, &radar.azymuth, &radar.elevation);
 		else Polar2Cartesian(&radar.x, &radar.y, &radar.z, &radar.distance, &radar.azymuth, &radar.elevation);
 
-			if(vis.radar) 
-			{
+			if(vis.radar){
 				DrawSphere((Vector3) {radar.x, radar.y, radar.z}, 0.5, BLUE);	
 				DrawSphereWires((Vector3) {radar.x, radar.y, radar.z}, 0.5, 20, 20, BLACK);
-				/*DrawCylinderEx(	(Vector3){radar.x, radar.y, radar.z}, 
-						(Vector3){(radar.x+1)*cos(radar.azymuth * PI/180),
-							  (radar.y+1)*sin(radar.azymuth * PI/180),
-							  (radar.z+1)*sin(radar.elevation * PI/180)},
-						0, gizmo.cylinder_d, gizmo.segments,
-						(Color){0x10, 0x4F, 0xCC, 0x55});
-			*/
 			}
-			if(vis.wave)
-			{
-				DrawCube((Vector3){boundingBox.min.x , boundingBox.min.y , boundingBox.min.z }, 100, 100, 1, (Color){0, 100, 100, 125});
-			}
+
+			if(vis.wave) DrawCube((Vector3){boundingBox.min.x , boundingBox.min.y , boundingBox.min.z }, 100, 100, 1, (Color){0, 100, 100, 125});
+		
 			// grid draw
 			if(vis.grid && IsModelReady(model)) DrawGrid(2, 10);
 			else if(vis.grid) DrawGrid(grid_count, grid_res);
 
 			// draw gizmo
-			if(vis.gizmo)
-			{
+			if(vis.gizmo){
 				// X axis RED
 				DrawCylinderEx(gizmo.start, gizmo.endRed, gizmo.cylinder_d, gizmo.cylinder_d, gizmo.segments, RED);
 				DrawCylinderWiresEx(gizmo.start, gizmo.endRed, gizmo.cylinder_d, gizmo.cylinder_d, 0, BLACK);
@@ -327,22 +310,32 @@ int main(void)
 				DrawCylinderWiresEx(gizmo.endBlue, (Vector3) {gizmo.x, gizmo.y, gizmo.cone_h + gizmo.z}, gizmo.cone_d, 0.0f, 0, BLACK);
 			}
 
-		if(IsModelReady(model) && (progress < 100)) DataCounter(&data, &model, &radar, &bounding, &progress);
-		else if(progress == 100) 
-		{
+		if(IsModelReady(model) && (progress < 100) && vis.progress){
+			DataCounter(&data, &model, &radar, &bound, &progress);
+			if(data.iter == items){
+				SortData(&data);
+				sorted = true;
+			}
+		}
+		else if(!vis.progress && (progress == 100)){
+			memset(data.point.x, 0, sizeof(data.point.x)/sizeof(data.point.x[0]));
+			memset(data.point.y, 0, sizeof(data.point.y)/sizeof(data.point.y[0]));
+			data.y_max = DBL_MIN;
+			data.y_min = DBL_MAX;
 			data.iter = 0;
+			bound.p_x = -16;
+			bound.p_y = -16;
 			progress = 0;
 		}
 
-
 				EndMode3D();
 
-		if(vis.plot && IsImageReady(plot_chart) && IsImageReady(plot_chart))
-		{
-			DrawCharts(&data);
-		}
+		if(vis.plot && IsImageReady(plot_chart) && IsImageReady(plot_chart) && sorted) DrawCharts(&data, &sig.save);
+		else if(vis.plot) DrawCharts(&data, &sig.save);
+		else sorted = false;
 
-		if(vis.progress && IsModelReady(model)) progressWindow(&vis.progress, &progress);
+		if(!IsModelReady(model) && vis.progress) sig.error_progress = true; 
+		else if(IsModelReady(model) && vis.progress) progressWindow(&vis.progress, &progress);
 
 			// Title Text
 		DrawText("SPECTRON - Super Powerfull Engine Computing Tracing Rays Of Numerics", 10.0f, 10.0f, 10, BLACK); 
@@ -352,11 +345,9 @@ int main(void)
 		int HelpButton = GuiButton(HelpBox, "Help");
 
 			// GUI programing
-			switch(panel_state)
-			{
+			switch(panel_state){
 				case FILE:
-				if(file_status)
-				{
+				if(file_status){
 					GuiWindowBox(PanelBox, "FILE");
 					File(&geo, &model, &sig, data_file, &data);
 					break;
@@ -364,8 +355,7 @@ int main(void)
 				else break;
 
 				case VIEW:
-				if(view_status)
-				{
+				if(view_status){
 					GuiPanel(PanelBox, "VIEW");
 					GuiGroupBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/2, 50.0, geo.group_width, 60.0}, "Object visibility");
 					// check boxes
@@ -376,17 +366,17 @@ int main(void)
 					GuiGroupBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/2, 140.0, geo.group_width, 60.0}, "Sceen visibility");
 					vis.grid = GuiCheckBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/2.4, 160.0f, check_width, 20.0f}, "Grid", vis.grid);
 					vis.gizmo = GuiCheckBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/3.5, 160.0f, check_width, 20.0f}, "Gizmo", vis.gizmo);
+					vis.fps = GuiCheckBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/6.6, 160.0f, check_width, 20.0f}, "FPS", vis.fps);
 
 					GuiGroupBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/2, 230.0, geo.group_width, 60.0}, "Data visibility");
-					vis.plot = GuiCheckBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/3.5, 250.0f, check_width, 20.0f}, "plot", vis.plot);
+					vis.plot = GuiCheckBox((Rectangle) {(float) WIDTH - (geo.group_width + geo.panel_width)/3.5, 250.0f, check_width, 20.0f}, "Plot", vis.plot);
 
 					break;
 				}
 				else break;
 
 				case TOOLS:
-				if(tools_status)
-				{
+				if(tools_status){
 					GuiPanel(PanelBox, "TOOLS");
 					
 					RadarSet = Radar_Group(&radar, &geo);
@@ -395,18 +385,13 @@ int main(void)
 					
 					Object_Group(&import_btn, &material_combo, &geo, name, &model_scale);
 
-					Control_Group(&sig.control, &progress, &geo);
+					Control_Group(&sig.control, &geo);
 
-					if(import_btn)
-					{
-						import_state.windowActive = !import_state.windowActive;
-					}
+					if(import_btn) import_state.windowActive = !import_state.windowActive;
 
-					if(import_state.windowActive)
-					{
-						DrawRectangle(0.0f, 0.0f, (float) WIDTH, (float) HEIGHT, Fade(GRAY, 0.8f));
-					}
-					importWindow(&import_state, &model, model_name, name, &sig.import_message, &data);
+					if(import_state.windowActive) DrawRectangle(0.0f, 0.0f, (float) WIDTH, (float) HEIGHT, Fade(GRAY, 0.8f));
+
+					importWindow(&import_state, &model, model_name, name, &sig.import_message);
 					GuiFileDialog(&import_state);
 
 					break;
@@ -414,8 +399,7 @@ int main(void)
 				else break;
 
 				case HELP:
-					if(HelpButton)
-					{
+					if(HelpButton){
 						file_status = false;
 						view_status = false;
 						tools_status = false;
@@ -424,23 +408,21 @@ int main(void)
 					break;
 			}
 		// Front Buttons
-		if(FileButton) 
-		{
+		if(FileButton){
 			view_status = false;
 			tools_status = false;
 			panel_state = FILE;
 			file_status = !file_status;
 		}
-		if(ViewButton) 
-		{
+
+		if(ViewButton){
 			file_status = false;
 			tools_status = false;
 			panel_state = VIEW;
 			view_status = !view_status;
 		}
 
-		if(ToolsButton) 
-		{
+		if(ToolsButton){
 			file_status = false;
 			view_status = false;
 			panel_state = TOOLS;
@@ -458,28 +440,27 @@ int main(void)
 		if(sig.message_status) helpWindow(&sig.message_status);
 			// invalid model import handler
 		if(sig.import_message) import_error_window(&sig.import_message);
+			// error window for not importing model
+		if(sig.error_progress) errorProgressWindow(&sig.error_progress, &vis.progress);
 		
 		// Radar & Camera polar setting
-		if(RadarSet)
-		{
+		if(RadarSet){
 			radar.azymuth = cam.azymuth;
 			radar.elevation = cam.elevation;
 		}
-		if(CamSet)
-		{
+		if(CamSet){
 			cam.azymuth = radar.azymuth;
 			cam.elevation = radar.elevation;
 		}
 		
-		DrawFPS(10, HEIGHT-20);
+		if(vis.fps) DrawFPS(10, HEIGHT-20);
 		EndDrawing();
 
 		imag = LoadImageFromScreen();
 		plot_polar = ImageFromImage(imag, (Rectangle) {90, HEIGHT/20 - 30, 470, HEIGHT/2-50});
 		plot_chart = ImageFromImage(imag, (Rectangle) {0, HEIGHT/1.9 - 30, 580, 530});
 
-		if(sig.save && (saveWindow(&sig.save, data_file, &data) == 1))
-		{
+		if(sig.save && (saveWindow(&sig.save, data_file, &data) == 1)){
 			char file_name[1024];
 			snprintf(file_name, 1024, "%s/polar.png", data_file);
 			ExportImage(plot_polar, file_name);
@@ -492,7 +473,7 @@ int main(void)
 		UnloadImage(plot_chart);
 
 	} // while true
-	//
+	
 	// program cleaning
 	UnloadModel(model);
 	CloseWindow();

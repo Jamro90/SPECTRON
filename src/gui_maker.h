@@ -18,7 +18,7 @@ void *vis_signals(void *arg);
 // ordinary programing
 int import_error_window(int *status);
 
-void importWindow(GuiFileDialogState *import_state, Model *model, char *model_name, char *name, int *message, DATA *data);
+void importWindow(GuiFileDialogState *import_state, Model *model, char *model_name, char *name, int *message);
 
 int newForSave(int *new_status, bool *status, char *INPUT, DATA *data, Model *model);
 	
@@ -36,9 +36,11 @@ int Camera_Group(Cam *cam, Geometry *geometry);
 
 void Object_Group(bool *import_btn, int *material_combo, Geometry *geometry, char *name, float *model_scale);
 
-void Control_Group(int *sim_btn, float *progress, Geometry *geometry);
+void Control_Group(bool *sim_btn, Geometry *geometry);
 
 int progressWindow(bool *status, float *progress);
+
+int errorProgressWindow(bool *status, bool *signal);
 
 #endif
 
