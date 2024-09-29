@@ -4,6 +4,8 @@
 
 SPECTRON is a program for measuring the RCS (Radar Cross Section) of physical objects (named targets). It is project for master degree. The main porpose is to analize & visiual data in dynamic enviroment. 
 
+![spectron.png]()
+
 ## Software
 
 The program is maintaing on operating system based on Linux kernel. However it is possible to run SPECTRON on Windows (64-bit & 32-bit). 
