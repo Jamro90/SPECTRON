@@ -25,7 +25,7 @@ cd SPECTRON/src
 make 
 ```
 
-building for Windows 64-bit architecture
+if you use Linux & need Windows executable building for Windows 64-bit architecture
 
 ```bash
 cd SPECTRON\src
